@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Capital.io — Build a Business Empire</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- Top bar -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div class="money-box"><span id="money">$0</span><span id="pnl" class="pnl">+$0/min</span></div>
+      <div id="goal-box"></div>
+    </div>
+    <div id="hud-center"><span id="clock"></span></div>
+    <div id="hud-right">
+      <button data-open="carts" title="Food carts">🛒<span>Carts</span></button>
+      <button data-open="workers" title="Workers">👷<span>Workers</span></button>
+      <button data-open="land" title="Land">🌾<span>Land</span></button>
+      <button data-open="property" title="Buildings">🏢<span>Property</span></button>
+      <button data-open="inventory" title="Storage">📦<span>Storage</span></button>
+      <button data-open="market" title="Market">📈<span>Market</span></button>
+      <button data-open="bank" title="Bank">🏦<span>Bank</span></button>
+      <button data-open="help" title="Help">❓<span>Help</span></button>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div id="panel" class="hidden">
+    <div class="panel-head"><h2 id="panel-title"></h2><button id="panel-close" title="Close">✕</button></div>
+    <div id="panel-body"></div>
+  </div>
+
+  <canvas id="minimap" class="hidden" width="196" height="148"></canvas>
+  <div id="zoom-controls" class="hidden"><button id="zoom-in">+</button><button id="zoom-out">−</button></div>
+  <div id="action-bar" class="hidden"></div>
+  <div id="placement-hint" class="hidden"></div>
+  <div id="tooltip" class="hidden"></div>
+  <div id="toasts"></div>
+  <div id="modal" class="hidden"><div id="modal-box"></div></div>
+
+  <!-- Start screen -->
+  <div id="title-screen">
+    <div class="title-card">
+      <div class="logo">Capital<span>.io</span></div>
+      <p class="tagline">Start with one food cart. End with an empire.</p>
+      <button id="continue-btn" class="btn big hidden"></button>
+      <p id="new-game-label" class="muted">Your name:</p>
+      <input id="player-name" maxlength="16" placeholder="Your name" autocomplete="off">
+      <p class="muted">Pick your first food cart:</p>
+      <div id="title-cuisines" class="cuisine-grid"></div>
+      <button id="start-btn" class="btn big">🚀 Start new business</button>
+      <p class="muted small">A 2D city business game inspired by Capital Rift. Your game saves in this browser.</p>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/economy.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/minigames.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
