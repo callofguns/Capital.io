@@ -160,7 +160,7 @@ function mgScrub(box, cart, finish) {
   box.innerHTML = `
     <div class="mg-title">🧽 Scrub your cart clean!</div>
     <div class="mg-sub">Click and drag over the dirt spots.</div>
-    <div class="mg-cart" id="mg-cart"><div class="mg-cart-top" style="background:${CUISINES[cart.cuisine].color}"></div></div>`;
+    <div class="mg-cart" id="mg-cart"><div class="mg-cart-top" style="background:${cart.color || CUISINES[cart.cuisine].color}"></div></div>`;
   const area = box.querySelector('#mg-cart');
   const spots = [];
   for (let i = 0; i < n; i++) {

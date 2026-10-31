@@ -108,15 +108,17 @@ function randomPedTileNear(cx, cy, radius) {
 
 function spawnNPC() {
   let spot;
-  if (S.carts.length && Math.random() < 0.6) {
-    const c = pick(S.carts);
+  // more people walk around near your businesses
+  const hubs = S.carts.map(c => ({ x: c.x, y: c.y })).concat(S.shops.map(sh => shopBuilding(sh).door));
+  if (hubs.length && Math.random() < 0.6) {
+    const c = pick(hubs);
     spot = randomPedTileNear(c.x, c.y, 12);
   } else spot = randomPedTileNear(0, 0, null);
   if (!inCityArea(spot.x, spot.y)) return;
   const n = {
     x: spot.x * TILE + TILE / 2 + rand(-6, 6), y: spot.y * TILE + TILE / 2 + rand(-6, 6),
     path: [], speed: rand(38, 62), face: 1, anim: Math.random() * 5, alpha: 0,
-    hunger: rand(0.15, 1), life: rand(80, 200), think: rand(0.5, 2), rej: {},
+    hunger: rand(0.15, 1), shopWant: Math.random(), life: rand(80, 200), think: rand(0.5, 2), rej: {},
     shirt: pick(SHIRT_COLORS), skin: pick(SKIN_COLORS), hair: pick(HAIR_COLORS),
     state: 'walk', cart: null, arrived: false, patience: 0, bubble: null, bubbleT: 0,
   };
@@ -181,12 +183,14 @@ function queueSlot(c, i) {
 function updateNPC(n, dt) {
   n.bubbleT -= dt;
   if (n.state === 'despawn') { n.alpha -= dt * 1.5; return; }
+  if (n.state === 'inShop') return; // shops.js moves them while inside
   n.alpha = Math.min(1, n.alpha + dt * 1.5);
   n.life -= dt;
   let moving = false;
 
   if (n.state === 'walk') {
     n.hunger = Math.min(1, n.hunger + dt * 0.004);
+    n.shopWant = Math.min(1, n.shopWant + dt * 0.003);
     if (!n.path.length) {
       if (n.life <= 0) { n.state = 'despawn'; return; }
       npcNewWander(n);
@@ -195,7 +199,12 @@ function updateNPC(n, dt) {
     if (n.think <= 0) {
       n.think = rand(1, 1.6);
       if (n.hunger > 0.4) considerCarts(n);
+      if (n.state === 'walk' && n.shopWant > 0.4) considerShops(n);
     }
+  } else if (n.state === 'toShop') {
+    if (!n.shop || !S.shops.includes(n.shop)) { n.shop = null; n.state = 'walk'; npcNewWander(n); return; }
+    if (followPath(n, n.speed * 1.1, dt)) enterShop(n);
+    moving = true;
   } else if (n.state === 'toCart') {
     const c = n.cart;
     if (!c || (!c.rival && !S.carts.includes(c))) { leaveCart(n, false, '🤷'); return; }

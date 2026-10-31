@@ -36,8 +36,11 @@ function startGame(state, isNew) {
   generateWorld(S.seed);
   buildWorldCanvas();
 
+  migrateSave(S);
+
   // Rebuild the non-saved runtime bits
   for (const c of S.carts) { c._queue = []; c._cook = 0; }
+  for (const sh of S.shops) { sh._visitors = []; sh._regs = []; }
   if (isNew) {
     const c = makeCart(S.startCuisine, World.starterCart.x, World.starterCart.y);
     for (const g of CUISINES[c.cuisine].recipe) c.stock[g] = cartCapacity(c);
@@ -59,7 +62,7 @@ function startGame(state, isNew) {
 
   const rep = isNew ? null : applyOffline();
   if (rep) showOfflineReport(rep);
-  else if (isNew) showWelcome();
+  else maybeShowStory();
 
   saveGame();
   updateHUD();
@@ -68,17 +71,15 @@ function startGame(state, isNew) {
   if (!Game.running) { Game.running = true; lastFrame = performance.now(); requestAnimationFrame(frame); }
 }
 
-function showWelcome() {
-  const C = CUISINES[S.startCuisine];
-  showModal(`<h2>Welcome to Capital.io, ${escapeHtml(S.name)}! 👋</h2>
-    <p>You've got <b>$150</b> and one ${C.emoji} <b>${C.name}</b> cart in the town square. Build it into an empire!</p>
-    <ul class="report">
-      <li>🚶 Walk with <kbd>WASD</kbd> or click the map</li>
-      <li>🍳 Customers line up at your cart — press <kbd>E</kbd> to cook</li>
-      <li>🎯 Follow the goals in the top-left for rewards</li>
-      <li>👷 Hire workers so your businesses run without you (even offline!)</li>
-    </ul>
-    <button class="btn big" onclick="closeModal()">Start cooking!</button>`, 'report');
+// Older saves (before the story & shops update) get the new fields
+function migrateSave(s) {
+  s.shops = s.shops || [];
+  for (const k of ['shopServed', 'shopEarned', 'cleaned']) s.stats[k] = s.stats[k] || 0;
+  if (s.storyV !== 2) {
+    // skip goals the player already finished (no double rewards)
+    s.storyV = 2; s.goalIndex = 0; s.chapterShown = -1;
+    while (GOALS[s.goalIndex] && GOALS[s.goalIndex].check(s)) s.goalIndex++;
+  }
 }
 
 // ---------- Input ----------
@@ -188,7 +189,9 @@ function tooltipText(h) {
     return c.rival ? `<b>${C.emoji} ${escapeHtml(c.name)}</b><br>Rival · ${fmtMoney(c.price)}` : `<b>${C.emoji} Your ${C.name} cart</b><br>${fmtMoney(c.price)} · ${stars(c.rating)}`;
   }
   if (h.kind === 'building') {
-    const b = h.b;
+    const b = h.b, sh = shopAt(b.id);
+    if (sh) return `<b>${SHOP_TYPES[sh.type].emoji} ${escapeHtml(sh.name)}</b><br>${shopOpen(sh) ? 'Open' : 'Closed'} · ${stars(sh.rating)}`;
+    if (b.forRent && !S.buildings[b.id]) return `<b>🏪 Storefront for rent</b><br>${fmtMoney(b.leasePerMin)}/min`;
     if (S.buildings[b.id]) return `<b>🏢 Your ${b.kind}</b><br>+${fmtMoney(b.rentPerMin)}/min rent`;
     return b.forSale ? `<b>🏢 ${b.kind}</b><br>For sale: ${fmtMoney(b.price)}` : `<b>🏢 ${b.kind}</b><br>Not for sale`;
   }
@@ -213,6 +216,7 @@ function update(dt) {
 
   updateNPCs(dt);
   updateCarts(dt);
+  updateShops(dt);
   updatePlots(dt);
   updateCars(dt);
   updateFloats(dt);
@@ -222,12 +226,14 @@ function update(dt) {
   if ((tm.sec -= dt) <= 0) {
     tm.sec = 1;
     let rent = 0;
-    for (const id in S.buildings) rent += World.buildings[id].rentPerMin / 60;
+    for (const id in S.buildings) if (!shopAt(id)) rent += World.buildings[id].rentPerMin / 60;
     if (rent) addMoney(rent);
+    shopsSecondTick();
     S.bank.savings *= 1 + BANK_RATE_PER_MIN / 60;
     Game.ledger = Game.ledger.filter(e => e.t > Game.t - 60);
     if (Date.now() > S.hireRefreshAt) refreshHirePool();
     checkGoals();
+    maybeShowStory();
   }
   if ((tm.save -= dt) <= 0) { tm.save = 15; saveGame(); }
   if ((tm.hud -= dt) <= 0) { tm.hud = 0.25; updateHUD(); updateActionBar(); }

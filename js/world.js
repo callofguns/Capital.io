@@ -155,6 +155,8 @@ function generateWorld(seed) {
     World.lanes.push({ axis: 'y', fixed: (bx * BLOCK + 1) * TILE + TILE / 2, dir: -1, min: yMin, max: yMax });
   }
 
+  setupStorefronts(seed);
+
   // 7) Rival carts run by the city's NPCs (your competition!)
   const cands = World.pedTiles.filter(i => World.tiles[i] === T.SIDEWALK);
   for (let i = cands.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [cands[i], cands[j]] = [cands[j], cands[i]]; }
@@ -172,6 +174,37 @@ function generateWorld(seed) {
       _queue: [], _cook: 0,
     });
   }
+}
+
+// Front doors + storefronts for rent. Uses its own random generator so
+// older saves keep exactly the same city.
+function setupStorefronts(seed) {
+  const rng = mulberry32(seed ^ 0x51ed27);
+  for (const b of World.buildings) {
+    b.door = findDoor(b);
+    b.forRent = !!b.door && !b.forSale && rng() < 0.75;
+    b.leasePerMin = Math.round(b.w * b.h * (0.16 + rng() * 0.1) * 10) / 10;
+  }
+}
+
+// The sidewalk tile in front of a building (prefers the bottom side)
+function findDoor(b) {
+  const sides = [
+    { side: 'bottom', tiles: Array.from({ length: b.w }, (_, i) => ({ x: b.x + i, y: b.y + b.h })) },
+    { side: 'left', tiles: Array.from({ length: b.h }, (_, i) => ({ x: b.x - 1, y: b.y + i })) },
+    { side: 'right', tiles: Array.from({ length: b.h }, (_, i) => ({ x: b.x + b.w, y: b.y + i })) },
+    { side: 'top', tiles: Array.from({ length: b.w }, (_, i) => ({ x: b.x + i, y: b.y - 1 })) },
+  ];
+  for (const s of sides) {
+    const ok = s.tiles.filter(t => tileAt(t.x, t.y) === T.SIDEWALK);
+    if (ok.length) {
+      const mid = ok[Math.floor(ok.length / 2)];
+      // the building tile just inside the door
+      const inside = s.side === 'bottom' ? { x: mid.x, y: mid.y - 1 } : s.side === 'top' ? { x: mid.x, y: mid.y + 1 } : s.side === 'left' ? { x: mid.x + 1, y: mid.y } : { x: mid.x - 1, y: mid.y };
+      return { x: mid.x, y: mid.y, side: s.side, ix: inside.x - b.x, iy: inside.y - b.y };
+    }
+  }
+  return null;
 }
 
 // ---------- Path finding (Breadth-First Search on the tile grid) ----------

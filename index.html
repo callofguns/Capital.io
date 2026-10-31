@@ -14,11 +14,12 @@
   <div id="hud" class="hidden">
     <div id="hud-left">
       <div class="money-box"><span id="money">$0</span><span id="pnl" class="pnl">+$0/min</span></div>
-      <div id="goal-box"></div>
+      <div id="goal-box" data-act="story" title="Show the story"></div>
     </div>
     <div id="hud-center"><span id="clock"></span></div>
     <div id="hud-right">
       <button data-open="carts" title="Food carts">🛒<span>Carts</span></button>
+      <button data-open="shops" id="shops-btn" title="Shops">🏪<span>Shops</span></button>
       <button data-open="workers" title="Workers">👷<span>Workers</span></button>
       <button data-open="land" title="Land">🌾<span>Land</span></button>
       <button data-open="property" title="Buildings">🏢<span>Property</span></button>
@@ -66,6 +67,7 @@
   <script src="js/render.js"></script>
   <script src="js/minigames.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/shops.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

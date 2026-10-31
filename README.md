@@ -30,8 +30,22 @@ Your game saves automatically in your browser (localStorage).
 | Click the minimap | Walk to that spot |
 | `Esc` | Close menus / cancel |
 
+## The story
+
+You play through 6 chapters, each started by a character who talks to you:
+
+1. **The Old Cart**: Grandma Rosa gives you her food cart. Learn to cook and clean.
+2. **Street Hustle**: hire help, buy a second cart, save up for a shop.
+3. **A Shop of Your Own**: Mr. Lee the landlord rents you a storefront. **Shops unlock!**
+4. **Shopkeeper**: hire cashiers, decorate, open a second shop.
+5. **Farm to Shelf**: Farmer Joe sells you land. Grow food for your shops and carts.
+6. **Tycoon**: the Mayor dares you to own the city.
+
+Click the goal box (top-left) at any time to read the current chapter again.
+
 ## What's in the game
 
+- **Shops** (from Chapter 3): rent a storefront and pick a Coffee Shop, Bakery, Grocery, Flower Shop or Gift Shop. Place counters, shelves, plants and tables in the layout editor, stock products and set prices. Customers walk inside, browse and pay at the counter. When you stand next to your shop, the roof disappears so you can see inside. Grocery shops can be stocked from your own farms.
 - **7 food carts**: Hot Dog, Burger, Sushi, Crêpe, Fish & Chips, Pizza and Burrito, each with its own cooking minigame (timing, combo or hold-and-release).
 - **Customers** walk around the city, notice nearby carts, and decide based on price, cleanliness, reviews and competition.
 - **6 upgrade tracks** per cart (Grill, Recipe, Signage, Fridge, Hygiene, Queue Rope), each up to level 10.
@@ -58,12 +72,15 @@ All code is plain JavaScript (no frameworks), split into files by job:
 | `js/entities.js` | Things that move: you, customers, cars, workers cooking, animals |
 | `js/render.js` | Draws everything on the canvas |
 | `js/minigames.js` | The cooking minigames and the scrubbing game |
-| `js/ui.js` | The menus/panels and what every button does |
+| `js/ui.js` | The menus/panels, the story pop-ups, and what every button does |
+| `js/shops.js` | **Everything about shops**: renting, the layout editor, stock, customers inside, cashiers |
 | `js/main.js` | Start screen, keyboard/mouse input and the main game loop |
 
 ### Easy things to try changing
 
 - Starting money: `money: 150` in `js/economy.js` (`newState`)
 - Food prices / cook times: `CUISINES` in `js/data.js`
+- The story text and goals: `STORY` in `js/data.js`
+- Shop products and their prices: `PRODUCTS` in `js/data.js`
 - How fast the day goes: `GAME_MINUTES_PER_SEC` in `js/data.js`
 - Upgrade costs: `UPGRADES` (the `base` number) in `js/data.js`

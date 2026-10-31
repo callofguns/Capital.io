@@ -31,6 +31,7 @@ function closeModal() {
   $('modal').classList.add('hidden');
   $('modal-box').innerHTML = '';
   UI.modalOpen = false;
+  UI.editShop = null;
   for (const c of S ? S.carts : []) c._playerCooking = false;
 }
 
@@ -45,10 +46,46 @@ function updateHUD() {
   const hh = Math.floor(mins / 60), mm = mins % 60;
   const icon = hh >= 6 && hh < 19 ? '☀️' : '🌙';
   $('clock').textContent = `${icon} Day ${day} · ${String(hh).padStart(2, '0')}:${String(mm - mm % 10).padStart(2, '0')}`;
+  $('money').classList.toggle('neg', S.money < 0);
   const g = GOALS[S.goalIndex];
-  $('goal-box').innerHTML = g
-    ? `<div class="goal-label">🎯 Goal ${S.goalIndex + 1}/${GOALS.length}</div><div>${g.text}</div><div class="goal-reward">Reward: ${fmtMoney(g.reward)}</div>`
-    : `<div class="goal-label">🏆 All goals done!</div><div>Net worth: ${fmtMoney(netWorth(S))}</div>`;
+  let html;
+  if (g) {
+    const ch = STORY[g.chapter], first = GOALS.findIndex(x => x.chapter === g.chapter);
+    html = `<div class="goal-label">📖 ${ch.title}</div><div>🎯 ${g.text}</div>
+      <div class="goal-reward">Goal ${S.goalIndex - first + 1}/${ch.goals.length} · Reward ${fmtMoney(g.reward)}</div>`;
+  } else html = `<div class="goal-label">🏆 The End… for now!</div><div>Net worth: ${fmtMoney(netWorth(S))}</div>`;
+  if (html !== $('goal-box')._html) { $('goal-box').innerHTML = html; $('goal-box')._html = html; }
+  $('shops-btn').classList.toggle('locked', !shopsUnlocked());
+}
+
+// ---------- Story ----------
+function showStory(ci) {
+  const ch = STORY[ci];
+  if (!ch) return;
+  const C = CUISINES[S.startCuisine];
+  const text = ch.text.replace(/\{name\}/g, escapeHtml(S.name)).replace(/\{cart\}/g, `${C.emoji} ${C.name}`);
+  const controls = ci === 0 ? `<ul class="report small-list">
+      <li>🚶 Walk with <kbd>WASD</kbd> or click the map</li>
+      <li>🍳 Press <kbd>E</kbd> at your cart to cook · <kbd>C</kbd> to clean</li>
+      <li>🎯 Your goals are in the top-left — click them to see this again</li></ul>` : '';
+  showModal(`<div class="story-ch">${ch.title}</div>
+    <div class="story-row"><div class="story-face">${ch.who}</div>
+      <div class="story-bubble"><b>${ch.speaker}</b><p>${text}</p></div></div>
+    ${controls}
+    <div class="story-goals"><b>In this chapter:</b><ol>${ch.goals.map((g, i) => {
+      const gi = GOALS.findIndex(x => x.chapter === ci) + i;
+      return `<li class="${gi < S.goalIndex ? 'done' : ''}">${g.text} <span class="muted">(${fmtMoney(g.reward)})</span></li>`;
+    }).join('')}</ol></div>
+    <button class="btn big" onclick="closeModal()">${ci === 0 ? "Let's cook!" : "Let's go!"}</button>`, 'story');
+}
+
+// Shows the next chapter's story when you reach it
+function maybeShowStory() {
+  const ci = currentChapter();
+  if (ci > (S.chapterShown ?? -1) && !UI.modalOpen) {
+    S.chapterShown = ci;
+    showStory(ci);
+  }
 }
 
 function checkGoals() {
@@ -57,6 +94,8 @@ function checkGoals() {
     addMoney(g.reward, false);
     toast(`🎯 Goal complete! +${fmtMoney(g.reward)}`, 'goal');
     S.goalIndex++;
+    const next = GOALS[S.goalIndex];
+    if (next && next.chapter !== g.chapter) toast(`📖 ${STORY[g.chapter].title.split('·')[1].trim()} complete!`, 'goal');
   }
 }
 
@@ -81,6 +120,19 @@ function playerNearPlot(pid) {
   return px > P.x - m && px < P.x + P.w + m && py > P.y - m && py < P.y + P.h + m;
 }
 
+// Your shop's door (or a storefront for rent) right next to you
+function nearestShopDoor() {
+  const px = Game.player.x / TILE, py = Game.player.y / TILE;
+  for (const s of S.shops) {
+    const d = shopBuilding(s).door;
+    if (dist(px, py, d.x + 0.5, d.y + 0.5) < 2.2) return { s, b: shopBuilding(s) };
+  }
+  for (const b of World.buildings) {
+    if (b.forRent && b.door && !shopAt(b.id) && dist(px, py, b.door.x + 0.5, b.door.y + 0.5) < 1.6) return { s: null, b };
+  }
+  return null;
+}
+
 function updateActionBar() {
   const bar = $('action-bar');
   let html = '';
@@ -92,6 +144,17 @@ function updateActionBar() {
     html += `<button class="btn ${waiting ? 'pulse' : ''}" data-act="cart-cook" data-id="${c.id}">🍳 Cook <kbd>E</kbd>${waiting ? ` <span class="badge">${waiting}</span>` : ''}</button>`;
     if (c.dirt > 5) html += `<button class="btn" data-act="cart-clean" data-id="${c.id}">🧽 Clean <kbd>C</kbd></button>`;
     html += `<button class="btn ghost" data-act="open" data-key="cart:${c.id}">📋 Manage</button>`;
+  } else if (nearestShopDoor()) {
+    const { s, b } = nearestShopDoor();
+    if (s) {
+      const T_ = SHOP_TYPES[s.type];
+      html += `<span class="ab-label">${T_.emoji} ${escapeHtml(s.name)}</span>`;
+      html += `<button class="btn" data-act="open" data-key="shop:${s.id}">📋 Manage</button>`;
+      html += `<button class="btn ghost" data-act="shop-edit" data-id="${s.id}">🛠️ Edit layout</button>`;
+      if (s.dirt > 5) html += `<button class="btn ghost" data-act="shop-clean" data-id="${s.id}">🧽 Clean</button>`;
+    } else {
+      html += `<span class="ab-label">🏪 Storefront for rent</span><button class="btn" data-act="open" data-key="building:${b.id}">🔎 View ${fmtMoney(b.leasePerMin)}/min</button>`;
+    }
   } else {
     const P = nearestPlot();
     if (P) {
@@ -215,7 +278,10 @@ const PANELS = {
     html += `<h3>Your staff (${S.workers.length})</h3>`;
     if (!S.workers.length) html += `<p class="muted small">Nobody yet — hire someone below.</p>`;
     for (const w of S.workers) {
-      const where = w.assign ? (w.assign.type === 'cart' ? (() => { const c = getCart(w.assign.id); return c ? `${CUISINES[c.cuisine].emoji} ${CUISINES[c.cuisine].name} cart` : '?'; })() : `🌾 Plot #${w.assign.id + 1}`) : 'Not working';
+      const where = !w.assign ? 'Not working'
+        : w.assign.type === 'cart' ? (() => { const c = getCart(w.assign.id); return c ? `${CUISINES[c.cuisine].emoji} ${CUISINES[c.cuisine].name} cart` : '?'; })()
+        : w.assign.type === 'shop' ? (() => { const sh = getShop(w.assign.id); return sh ? `${SHOP_TYPES[sh.type].emoji} Cashier at ${escapeHtml(sh.name)}` : '?'; })()
+        : `🌾 Plot #${w.assign.id + 1}`;
       const xpNeed = xpForLevel(w.level);
       html += `<div class="card"><div class="row">${workerFace(w)}<div class="grow"><b>${escapeHtml(w.name)}</b> <span class="stars">${stars(w.stars)}</span>
         <div class="muted small">Lv ${w.level} · ${fmtMoney(w.wage)} per job · earned ${fmtMoney(w.earned)}</div><div class="muted small">📍 ${where}</div></div>
@@ -372,6 +438,7 @@ const PANELS = {
       <div class="btn-row">${btn('Withdraw $100', 'bank-wd', { a: 100 }, 'ghost')}${btn('Withdraw all', 'bank-wd', { a: 'all' }, 'ghost')}</div></div>`;
     html += `<div class="card"><b>Lifetime stats</b><div class="stat-grid">
       <div><span>Meals served</span><b>${S.stats.served}</b></div><div><span>Cooked by you</span><b>${S.stats.playerServed}</b></div>
+      <div><span>Shop customers</span><b>${S.stats.shopServed}</b></div><div><span>Shop sales</span><b>${fmtMoney(S.stats.shopEarned)}</b></div>
       <div><span>Crops harvested</span><b>${S.stats.harvested}</b></div><div><span>Total earned</span><b>${fmtMoney(S.stats.earned)}</b></div></div></div>`;
     return { title: '🏦 Bank', html };
   },
@@ -401,8 +468,10 @@ const PANELS = {
 function assignOptions(w) {
   const carts = S.carts.filter(c => !workerFor('cart', c.id));
   const plots = Object.keys(S.plots).filter(id => S.plots[id].type && !workerFor('plot', id));
-  if (!carts.length && !plots.length) return '<p class="muted small">Nothing free to assign to.</p>';
+  const shops = S.shops.filter(sh => workersFor('shop', sh.id).length < Math.max(1, countFurn(sh, 'counter')));
+  if (!carts.length && !plots.length && !shops.length) return '<p class="muted small">Nothing free to assign to.</p>';
   return `<div class="btn-row">` +
+    shops.map(sh => btn(`→ ${SHOP_TYPES[sh.type].emoji} shop`, 'assign', { w: w.id, type: 'shop', id: sh.id }, 'ghost small')).join('') +
     carts.map(c => btn(`→ ${CUISINES[c.cuisine].emoji} cart`, 'assign', { w: w.id, type: 'cart', id: c.id }, 'ghost small')).join('') +
     plots.map(id => btn(`→ ${S.plots[id].type === 'farm' ? '🌾' : '🐄'} plot #${+id + 1}`, 'assign', { w: w.id, type: 'plot', id }, 'ghost small')).join('') + `</div>`;
 }
@@ -468,7 +537,7 @@ function startCleaning(c) {
   if (!c) return;
   if (!nearestOwnCart() || nearestOwnCart().id !== c.id) { toast('Walk up to your cart first', 'bad'); return; }
   if (c.dirt < 1) { toast('Already spotless!', 'info'); return; }
-  Minigame.start('scrub', c, () => { c.dirt = 0; toast('Cart is sparkling clean ✨', 'good'); });
+  Minigame.start('scrub', c, () => { c.dirt = 0; S.stats.cleaned++; toast('Cart is sparkling clean ✨', 'good'); });
 }
 
 const ACTIONS = {
@@ -553,6 +622,7 @@ const ACTIONS = {
   },
   'bld-sell': d => {
     const b = World.buildings[d.id];
+    if (shopAt(d.id)) { toast('Close your shop in this building first', 'bad'); return; }
     if (!confirm(`Sell the ${b.kind} for ${fmtMoney(b.price * 0.8)}?`)) return;
     delete S.buildings[d.id];
     addMoney(b.price * 0.8, false);
@@ -594,6 +664,8 @@ function showOfflineReport(rep) {
   if (rep.meals) rows.push(`🍽️ Your workers served <b>${rep.meals}</b> meals (${fmtMoney(rep.sales)} after ingredients)`);
   if (rep.wages) rows.push(`👷 Wages paid: <b>${fmtMoney(rep.wages)}</b>`);
   if (rep.goods) rows.push(`🌾 Farms & ranches produced <b>${rep.goods}</b> goods`);
+  if (rep.shopSales) rows.push(`🏪 Your shops sold <b>${fmtMoney(rep.shopSales)}</b> (after restocking)`);
+  if (rep.leasePaid) rows.push(`🔑 Shop rent paid: <b>${fmtMoney(rep.leasePaid)}</b>`);
   if (rep.rent) rows.push(`🏢 Rent collected: <b>${fmtMoney(rep.rent)}</b>`);
   if (rep.interest) rows.push(`🏦 Bank interest: <b>${fmtMoney(rep.interest)}</b>`);
   if (!rows.length) rows.push('Nothing happened — hire workers so your business runs while you are away!');

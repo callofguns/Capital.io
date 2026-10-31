@@ -326,9 +326,11 @@ function drawPlot(P) {
 }
 
 function drawBuildingOverlay(b) {
+  if (shopAt(b.id)) return; // shops draw themselves (shops.js)
   const owned = !!S.buildings[b.id];
-  if (!owned && !b.forSale) return;
   const px = b.x * TILE + 3, py = b.y * TILE + 3, w = b.w * TILE - 6;
+  if (!owned && b.forRent) { tag(px + w / 2, py + 14, 'FOR RENT ' + fmtMoney(b.leasePerMin) + '/min', '#1d3557'); return; }
+  if (!owned && !b.forSale) return;
   if (owned) {
     ctx.fillStyle = '#6c757d'; ctx.fillRect(px + 10, py + 6, 2, 18);
     ctx.fillStyle = '#2a9d8f'; ctx.beginPath(); ctx.moveTo(px + 12, py + 6); ctx.lineTo(px + 26, py + 11); ctx.lineTo(px + 12, py + 16); ctx.fill();
@@ -382,6 +384,7 @@ function render() {
 
   for (const P of World.plots) if (onScreen(P.x * TILE + 80, P.y * TILE + 80, 120)) drawPlot(P);
   for (const b of World.buildings) if (onScreen(b.x * TILE, b.y * TILE, 300)) drawBuildingOverlay(b);
+  for (const sh of S.shops) { const b = shopBuilding(sh); if (onScreen(b.x * TILE, b.y * TILE, 300)) drawShop(sh); }
   for (const c of Game.cars) {
     const x = c.lane.axis === 'x' ? c.pos : c.lane.fixed, y = c.lane.axis === 'x' ? c.lane.fixed : c.pos;
     if (onScreen(x, y)) drawCar(c);
@@ -404,7 +407,7 @@ function render() {
     const w = workerFor('cart', c.id);
     if (w && onScreen(c.x * TILE, c.y * TILE)) list.push({ y: c.y * TILE + 10, f: () => drawPerson(c.x * TILE + TILE / 2 + 17, c.y * TILE + 12, { shirt: w.shirt, skin: w.skin, hair: w.hair, apron: true, hat: true, face: -1, moving: c._cook > 0, anim: Game.t }) });
   }
-  for (const n of Game.npcs) if (onScreen(n.x, n.y)) list.push({ y: n.y, f: () => { drawPerson(n.x, n.y, { ...n, moving: n.path.length > 0 }); if (n.bubbleT > 0 && n.bubble) drawBubble(n.x, n.y - 26, n.bubble); } });
+  for (const n of Game.npcs) if (n.state !== 'inShop' && onScreen(n.x, n.y)) list.push({ y: n.y, f: () => { drawPerson(n.x, n.y, { ...n, moving: n.path.length > 0 }); if (n.bubbleT > 0 && n.bubble) drawBubble(n.x, n.y - 26, n.bubble); } });
   const p = Game.player;
   list.push({ y: p.y, f: () => drawPlayer(p) });
   list.sort((a, b) => a.y - b.y);
@@ -467,6 +470,8 @@ function renderMinimap() {
   for (const id in S.plots) { const P = World.plots[id]; m.fillRect(P.x * TILE * sx, P.y * TILE * sy, P.w * TILE * sx, P.h * TILE * sy); }
   m.fillStyle = 'rgba(42,157,143,0.9)';
   for (const id in S.buildings) { const b = World.buildings[id]; m.fillRect(b.x * TILE * sx, b.y * TILE * sy, b.w * TILE * sx, b.h * TILE * sy); }
+  m.fillStyle = '#ff8c42';
+  for (const sh of S.shops) { const b = shopBuilding(sh); m.fillRect(b.x * TILE * sx, b.y * TILE * sy, b.w * TILE * sx, b.h * TILE * sy); }
   for (const r of World.rivals) { m.fillStyle = '#adb5bd'; m.fillRect(r.x * TILE * sx - 1.5, r.y * TILE * sy - 1.5, 3, 3); }
   for (const c of S.carts) { m.fillStyle = '#ffd166'; m.beginPath(); m.arc((c.x + 0.5) * TILE * sx, (c.y + 0.5) * TILE * sy, 3, 0, Math.PI * 2); m.fill(); }
   const z = Game.cam.zoom;

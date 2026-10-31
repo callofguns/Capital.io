@@ -8,11 +8,11 @@ function newState(name, cuisine) {
   const s = {
     v: 1, seed: (Math.random() * 1e9) | 0, name, startCuisine: cuisine,
     money: 150, clock: 8 * 60, nextId: 1,
-    carts: [], workers: [], hirePool: [], hireRefreshAt: 0,
+    carts: [], shops: [], workers: [], hirePool: [], hireRefreshAt: 0,
     inventory: {}, plots: {}, buildings: {}, market: {},
     bank: { savings: 0 },
-    stats: { served: 0, playerServed: 0, harvested: 0, marketSold: 0, earned: 0 },
-    goalIndex: 0, player: null, lastSave: Date.now(), created: Date.now(),
+    stats: { served: 0, playerServed: 0, harvested: 0, marketSold: 0, earned: 0, shopServed: 0, shopEarned: 0, cleaned: 0 },
+    goalIndex: 0, storyV: 2, chapterShown: -1, player: null, lastSave: Date.now(), created: Date.now(),
   };
   for (const g in GOODS) {
     s.market[g] = { price: GOODS[g].base, hist: Array(40).fill(GOODS[g].base) };
@@ -119,6 +119,11 @@ const cartQueueMax = c => 3 + (c.upgrades ? c.upgrades.queue : 1);
 const cartNotice = c => 6 + (c.upgrades ? c.upgrades.sign * 0.9 : 1);
 const cartPortions = c => c.rival ? 99 : Math.min(...CUISINES[c.cuisine].recipe.map(g => c.stock[g] || 0));
 const mealCost = c => CUISINES[c.cuisine].recipe.reduce((s, g) => s + buyPrice(g), 0);
+
+// Shops can have several workers, so this returns a list
+function workersFor(type, id) {
+  return S.workers.filter(w => w.assign && w.assign.type === type && w.assign.id === +id);
+}
 
 function workerFor(type, id) {
   return S.workers.find(w => w.assign && w.assign.type === type && w.assign.id === +id) || null;
@@ -241,8 +246,10 @@ function giveXp(w, n) {
 }
 
 function assignWorker(w, type, id) {
-  const prev = workerFor(type, id);
-  if (prev) prev.assign = null;
+  if (type !== 'shop') { // carts and plots have one worker; shops can have several
+    const prev = workerFor(type, id);
+    if (prev) prev.assign = null;
+  }
   w.assign = { type, id: +id };
 }
 
@@ -319,6 +326,7 @@ function netWorth(s) {
   if (World.plots.length) {
     for (const id in s.plots) w += World.plots[id].price;
     for (const id in s.buildings) w += World.buildings[id].price;
+    for (const sh of s.shops || []) for (const f of sh.furniture) if (f) w += FURNITURE[f.k].cost * 0.5;
   }
   return w;
 }
@@ -327,7 +335,7 @@ function netWorth(s) {
 function applyOffline() {
   const secs = Math.min((Date.now() - S.lastSave) / 1000, OFFLINE_CAP_SEC);
   if (secs < 60) return null;
-  const rep = { secs, meals: 0, sales: 0, wages: 0, rent: 0, interest: 0, goods: 0 };
+  const rep = { secs, meals: 0, sales: 0, wages: 0, rent: 0, interest: 0, goods: 0, shopSales: 0, leasePaid: 0 };
   S.clock += secs * GAME_MINUTES_PER_SEC;
 
   for (const c of S.carts) {
@@ -377,7 +385,8 @@ function applyOffline() {
   }
 
   let rentPerMin = 0;
-  for (const id in S.buildings) rentPerMin += World.buildings[id].rentPerMin;
+  for (const id in S.buildings) if (!shopAt(id)) rentPerMin += World.buildings[id].rentPerMin;
+  shopsOffline(secs, rep);
   rep.rent = rentPerMin * secs / 60;
   addMoney(rep.rent, false);
 
