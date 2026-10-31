@@ -12,6 +12,7 @@ const SETTINGS_DEFAULT = {
   alwaysRun: false,  // run without holding Shift
   crowd: 'normal',   // how many people walk around: calm / normal / busy
   autosave: 15,      // seconds between autosaves
+  joystick: true,    // on-screen joystick (phones & tablets)
 };
 const CROWD_LEVELS = { calm: 0.6, normal: 1, busy: 1.4 };
 
@@ -30,6 +31,7 @@ function saveSettings() {
 
 function applySettings() {
   document.body.classList.toggle('no-minimap', !Settings.minimap);
+  document.body.classList.toggle('no-joystick', !Settings.joystick);
   if (!Settings.tooltips) $('tooltip').classList.add('hidden');
 }
 

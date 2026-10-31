@@ -58,7 +58,7 @@ function startGame(state, isNew) {
   for (const n of Game.npcs) n.alpha = 1;
 
   $('title-screen').classList.add('hidden');
-  ['hud', 'minimap', 'zoom-controls'].forEach(id => $(id).classList.remove('hidden'));
+  ['hud', 'minimap', 'zoom-controls', 'joystick'].forEach(id => $(id).classList.remove('hidden'));
 
   const rep = isNew ? null : applyOffline();
   if (rep) showOfflineReport(rep);
@@ -136,7 +136,7 @@ function setupInput() {
     const h = hitTest(w.x, w.y);
     canvas.style.cursor = UI.placement ? 'crosshair' : h ? 'pointer' : 'default';
     const tip = $('tooltip');
-    if (h && !UI.placement && Settings.tooltips) {
+    if (h && !UI.placement && Settings.tooltips && !IS_TOUCH) {
       tip.innerHTML = tooltipText(h);
       tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px';
       tip.classList.remove('hidden');
@@ -254,6 +254,7 @@ function frame(now) {
 window.addEventListener('DOMContentLoaded', () => {
   initRenderer();
   setupInput();
+  setupTouch();
   applySettings();
   $('version-tag').textContent = GAME_VERSION;
   $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });

@@ -31,11 +31,15 @@ function updatePlayer(dt) {
     if (k.a || k.arrowleft) vx -= 1;
     if (k.d || k.arrowright) vx += 1;
   }
+  // On-screen joystick (phones): push it all the way to run
+  const joy = Math.hypot(Joy.dx, Joy.dy);
+  let joySpeed = 0;
+  if (!UI.modalOpen && joy > 0.2) { vx = Joy.dx; vy = Joy.dy; joySpeed = joy > 0.9 ? 190 : 120; }
   p.moving = false;
   if (vx || vy) {
     p.path = [];
-    const l = Math.hypot(vx, vy);
-    const dx = vx / l * speed * dt, dy = vy / l * speed * dt;
+    const l = Math.hypot(vx, vy), sp = joySpeed || speed;
+    const dx = vx / l * sp * dt, dy = vy / l * sp * dt;
     const nx = p.x + dx; if (!blockedAt(nx, p.y, PLAYER_R)) p.x = nx;
     const ny = p.y + dy; if (!blockedAt(p.x, ny, PLAYER_R)) p.y = ny;
     if (vx) p.face = Math.sign(vx);

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1e212b"/>
+  <circle cx="256" cy="256" r="230" fill="#2b3a55" opacity="0.5"/>
+  <!-- cart body -->
+  <rect x="146" y="290" width="220" height="110" rx="18" fill="#f1faee" stroke="#6c757d" stroke-width="8"/>
+  <rect x="146" y="350" width="220" height="18" fill="#ff8c42"/>
+  <circle cx="196" cy="412" r="22" fill="#343a40"/>
+  <circle cx="316" cy="412" r="22" fill="#343a40"/>
+  <!-- striped umbrella -->
+  <g transform="translate(256 220)">
+    <path d="M0 0 L190 0 A190 190 0 0 0 134 -134 Z" fill="#ffd166"/>
+    <path d="M0 0 L134 -134 A190 190 0 0 0 0 -190 Z" fill="#ffffff"/>
+    <path d="M0 0 L0 -190 A190 190 0 0 0 -134 -134 Z" fill="#ffd166"/>
+    <path d="M0 0 L-134 -134 A190 190 0 0 0 -190 0 Z" fill="#ffffff"/>
+    <rect x="-6" y="0" width="12" height="80" fill="#6c757d"/>
+    <circle r="14" fill="#343a40"/>
+  </g>
+  <text x="256" y="490" font-family="Arial Black, Arial, sans-serif" font-size="56" font-weight="900" fill="#ffd166" text-anchor="middle">$</text>
+</svg>

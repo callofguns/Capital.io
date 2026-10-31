@@ -494,7 +494,11 @@ function renderShopEditor() {
   const s = getShop(UI.editShop);
   if (!s) return closeModal();
   const b = shopBuilding(s), T_ = SHOP_TYPES[s.type];
-  const size = Math.max(30, Math.min(52, Math.floor(Math.min(400, window.innerWidth - 70) / b.w), Math.floor((window.innerHeight - 420) / b.h)));
+  // sideways phones put the tools next to the grid, so the grid can be taller
+  const wide = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+  const size = wide
+    ? Math.max(24, Math.min(48, Math.floor((window.innerWidth * 0.45) / b.w), Math.floor((window.innerHeight - 90) / b.h)))
+    : Math.max(30, Math.min(52, Math.floor(Math.min(400, window.innerWidth - 70) / b.w), Math.floor((window.innerHeight * 0.88 - 350) / b.h) - 3));
   const dc = doorCell(b);
   const tools = [['counter', FURNITURE.counter]]
     .concat(T_.products.map(p => ['shelf:' + p, { name: productInfo(p).name + ' shelf', emoji: productInfo(p).emoji, cost: FURNITURE.shelf.cost }]))
@@ -507,11 +511,12 @@ function renderShopEditor() {
   }
   const html = `<div class="mg-title">🛠️ ${T_.emoji} ${escapeHtml(s.name)}</div>
     <div class="mg-sub">Pick something below, then tap an empty square to place it. You have ${fmtMoney(S.money)}.</div>
-    <div class="ed-tools">${tools.map(([k, f]) => `<button class="ed-tool ${UI.editTool === k ? 'sel' : ''}" data-act="ed-tool" data-t="${k}"><span>${f.emoji}</span>${f.name}<small>${f.cost ? fmtMoney(f.cost) : 'refund 50%'}</small></button>`).join('')}</div>
-    <div class="ed-grid" style="grid-template-columns:repeat(${b.w},${size}px)">${grid}</div>
-    <div class="muted small">🧾 ${countFurn(s, 'counter')} counters · 🗄️ ${countFurn(s, 'shelf')} shelves · ✨ +${shopDecor(s)} appeal from decorations</div>
-    <button class="btn big" data-act="ed-done">Done</button>`;
-  showModal(html, 'editor');
+    <div class="ed-body"><div class="ed-side"><div class="ed-tools">${tools.map(([k, f]) => `<button class="ed-tool ${UI.editTool === k ? 'sel' : ''}" data-act="ed-tool" data-t="${k}"><span>${f.emoji}</span>${f.name}<small>${f.cost ? fmtMoney(f.cost) : 'refund 50%'}</small></button>`).join('')}</div>
+      <div class="ed-foot"><div class="muted small">🧾 ${countFurn(s, 'counter')} counters · 🗄️ ${countFurn(s, 'shelf')} shelves · ✨ +${shopDecor(s)} appeal from decorations</div>
+      <button class="btn big" data-act="ed-done">Done</button></div></div>
+    <div class="ed-grid" style="grid-template-columns:repeat(${b.w},${size}px)">${grid}</div></div>
+`;
+  showModal(html, 'editor' + (wide ? ' wide' : ''));
 }
 
 function placeFurniture(i) {

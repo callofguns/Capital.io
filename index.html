@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#16181f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Capital.io">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
   <title>Capital.io — Build a Business Empire</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
   <link rel="stylesheet" href="css/style.css">
@@ -37,6 +44,7 @@
   </div>
 
   <canvas id="minimap" class="hidden" width="196" height="148"></canvas>
+  <div id="joystick" class="hidden"><div id="joy-knob"></div></div>
   <div id="zoom-controls" class="hidden"><button id="zoom-in">+</button><button id="zoom-out">−</button></div>
   <div id="action-bar" class="hidden"></div>
   <div id="placement-hint" class="hidden"></div>
@@ -64,6 +72,7 @@
   <script src="js/data.js"></script>
   <script src="js/util.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/touch.js"></script>
   <script src="js/world.js"></script>
   <script src="js/economy.js"></script>
   <script src="js/entities.js"></script>

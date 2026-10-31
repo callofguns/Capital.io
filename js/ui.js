@@ -51,7 +51,7 @@ function updateHUD() {
   let html;
   if (g) {
     const ch = STORY[g.chapter], first = GOALS.findIndex(x => x.chapter === g.chapter);
-    html = `<div class="goal-label">📖 ${ch.title}</div><div>🎯 ${g.text}</div>
+    html = `<div class="goal-label">📖 ${ch.title}</div><div>🎯 ${controlText(g.text)}</div>
       <div class="goal-reward">Goal ${S.goalIndex - first + 1}/${ch.goals.length} · Reward ${fmtMoney(g.reward)}</div>`;
   } else html = `<div class="goal-label">🏆 The End… for now!</div><div>Net worth: ${fmtMoney(netWorth(S))}</div>`;
   if (html !== $('goal-box')._html) { $('goal-box').innerHTML = html; $('goal-box')._html = html; }
@@ -63,18 +63,17 @@ function showStory(ci) {
   const ch = STORY[ci];
   if (!ch) return;
   const C = CUISINES[S.startCuisine];
-  const text = ch.text.replace(/\{name\}/g, escapeHtml(S.name)).replace(/\{cart\}/g, `${C.emoji} ${C.name}`);
+  const text = controlText(ch.text).replace(/\{name\}/g, escapeHtml(S.name)).replace(/\{cart\}/g, `${C.emoji} ${C.name}`);
   const controls = ci === 0 ? `<ul class="report small-list">
-      <li>🚶 Walk with <kbd>WASD</kbd> or click the map</li>
-      <li>🍳 Press <kbd>E</kbd> at your cart to cook · <kbd>C</kbd> to clean</li>
-      <li>🎯 Your goals are in the top-left — click them to see this again</li></ul>` : '';
+      ${controlsList()}
+      <li>🎯 Your goals are in the top-left — ${IS_TOUCH ? 'tap' : 'click'} them to see this again</li></ul>` : '';
   showModal(`<div class="story-ch">${ch.title}</div>
     <div class="story-row"><div class="story-face">${ch.who}</div>
       <div class="story-bubble"><b>${ch.speaker}</b><p>${text}</p></div></div>
     ${controls}
     <div class="story-goals"><b>In this chapter:</b><ol>${ch.goals.map((g, i) => {
       const gi = GOALS.findIndex(x => x.chapter === ci) + i;
-      return `<li class="${gi < S.goalIndex ? 'done' : ''}">${g.text} <span class="muted">(${fmtMoney(g.reward)})</span></li>`;
+      return `<li class="${gi < S.goalIndex ? 'done' : ''}">${controlText(g.text)} <span class="muted">(${fmtMoney(g.reward)})</span></li>`;
     }).join('')}</ol></div>
     <button class="btn big" onclick="closeModal()">${ci === 0 ? "Let's cook!" : "Let's go!"}</button>`, 'story');
 }
@@ -454,10 +453,9 @@ const PANELS = {
     return {
       title, html: tabs + `
       <div class="card"><b>Controls</b><ul>
-        <li><kbd>WASD</kbd> / arrows or <b>click</b> the map to walk (<kbd>Shift</kbd> = run)</li>
-        <li><kbd>E</kbd> cook at your cart · <kbd>C</kbd> clean it</li>
-        <li>Mouse wheel or +/− to zoom · click the minimap to walk there</li>
-        <li>Click carts, shops, plots and buildings to open them · <kbd>Esc</kbd> closes things</li></ul></div>
+        ${controlsList()}
+        <li>${IS_TOUCH ? 'Tap' : 'Click'} the minimap to walk there</li>
+        <li>${IS_TOUCH ? 'Tap' : 'Click'} carts, shops, plots and buildings to open them${IS_TOUCH ? ' · swipe a menu down to close it' : ' · <kbd>Esc</kbd> closes things'}</li></ul></div>
       <div class="card"><b>How to get rich</b><ol>
         <li>Follow the story: your goals are in the top-left. Click them to read the chapter again.</li>
         <li>Stand by your cart. Customers line up — press <kbd>E</kbd> and play the cooking minigame. Better cooking = bigger tips and better reviews.</li>
@@ -479,10 +477,12 @@ function settingsHtml() {
       ${toggle('minimap', 'Minimap', 'The little map in the corner')}
       ${toggle('night', 'Night lighting', 'Dark nights with glowing street lights')}
       ${toggle('floats', 'Money pop-ups', 'Floating "+$9" when you sell')}
-      ${toggle('tooltips', 'Hover info', 'Show details when the mouse is over things')}
+      ${IS_TOUCH ? '' : toggle('tooltips', 'Hover info', 'Show details when the mouse is over things')}
+      ${IS_TOUCH ? toggle('joystick', 'Joystick', 'On-screen joystick for walking (you can always tap the map too)') : ''}
+      ${document.fullscreenEnabled ? `<div class="row setting"><div class="grow"><b>Full screen</b><div class="muted small">Hide the browser bars</div></div>${btn(document.fullscreenElement ? 'Exit' : '⛶ Go', 'fullscreen', {}, 'ghost')}</div>` : ''}
     </div>
     <div class="card"><b>Gameplay</b>
-      ${toggle('alwaysRun', 'Always run', 'Run without holding Shift (Shift makes you walk)')}
+      ${IS_TOUCH ? '' : toggle('alwaysRun', 'Always run', 'Run without holding Shift (Shift makes you walk)')}
       ${choice('crowd', 'Crowds', 'Fewer people runs faster on slow computers', [['calm', 'Calm'], ['normal', 'Normal'], ['busy', 'Busy']])}
       ${choice('autosave', 'Autosave', 'How often your game saves itself', [[10, '10s'], [15, '15s'], [30, '30s'], [60, '1 min']])}
     </div>
@@ -518,7 +518,7 @@ function validCartSpot(x, y, ignoreId) {
 function startPlacement(p) {
   UI.placement = p;
   closePanel();
-  $('placement-hint').innerHTML = `${CUISINES[p.cuisine].emoji} Click a <b>sidewalk</b> or <b>plaza</b> tile to place your cart ${p.mode === 'new' ? `(${fmtMoney(cartCost(S.carts.length))})` : ''} · <kbd>Esc</kbd> to cancel`;
+  $('placement-hint').innerHTML = `${CUISINES[p.cuisine].emoji} Click a <b>sidewalk</b> or <b>plaza</b> tile to place your cart ${p.mode === 'new' ? `(${fmtMoney(cartCost(S.carts.length))})` : ''} <button class="btn small ghost" data-act="cancel-place">✕ Cancel</button>`;
   $('placement-hint').classList.remove('hidden');
 }
 function endPlacement() {
@@ -670,6 +670,8 @@ const ACTIONS = {
   },
   save: () => { saveGame(); toast('Game saved 💾', 'good'); },
   'help-tab': d => openPanel('help:' + d.t),
+  'cancel-place': () => endPlacement(),
+  fullscreen: () => toggleFullscreen(),
   setting: d => {
     const v = d.v === 'true' ? true : d.v === 'false' ? false : isNaN(+d.v) ? d.v : +d.v;
     Settings[d.k] = v;

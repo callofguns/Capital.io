@@ -30,6 +30,19 @@ Your game saves automatically in your browser (localStorage). In **❓ Help → 
 | Click the minimap | Walk to that spot |
 | `Esc` | Close menus / cancel |
 
+### On a phone or tablet
+
+| Touch | What it does |
+|---|---|
+| Joystick (bottom-left) | Walk (push it all the way to run) |
+| Tap the map | Walk there |
+| Tap **🍳 Cook** / **🧽 Clean** | Cook or clean at your cart |
+| Pinch with two fingers | Zoom |
+| Swipe a menu down | Close it |
+
+The game works upright and sideways. Once it's online (for example on GitHub Pages), use your browser's
+**Add to Home Screen** to install it like an app, and it opens full screen.
+
 ## The story
 
 You play through 6 chapters, each started by a character who talks to you:
@@ -74,6 +87,8 @@ All code is plain JavaScript (no frameworks), split into files by job:
 | `js/minigames.js` | The cooking minigames and the scrubbing game |
 | `js/ui.js` | The menus/panels, the story pop-ups, and what every button does |
 | `js/shops.js` | **Everything about shops**: renting, the layout editor, stock, customers inside, cashiers |
+| `js/touch.js` | Phone controls: joystick, pinch-to-zoom, swipe-to-close |
+| `js/settings.js` | The ⚙️ Settings and save backups |
 | `js/main.js` | Start screen, keyboard/mouse input and the main game loop |
 
 ### Easy things to try changing

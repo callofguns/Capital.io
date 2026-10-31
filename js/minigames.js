@@ -144,7 +144,7 @@ function mgHold(box, cart, finish, labelFor) {
   };
   raf = requestAnimationFrame(loop);
   const btn = box.querySelector('#mg-hold');
-  const down = e => { e.preventDefault(); if (!done) holding = true; };
+  const down = e => { e.preventDefault(); btn.setPointerCapture(e.pointerId); if (!done) holding = true; };
   btn.addEventListener('pointerdown', down);
   btn.addEventListener('pointerup', release);
   btn.addEventListener('pointerleave', release);
