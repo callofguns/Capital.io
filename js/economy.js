@@ -400,8 +400,9 @@ const BANK_RATE_PER_MIN = 0.0005; // 0.05% per minute
 
 // ---------- Save / load ----------
 function saveGame() {
-  if (!S) return;
+  if (!S || Game.noSave) return;
   S.lastSave = Date.now();
+  S.gameVersion = GAME_VERSION;
   S.player = { x: Game.player.x, y: Game.player.y };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(S, (k, v) => (k[0] === '_' ? undefined : v)));

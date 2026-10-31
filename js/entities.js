@@ -22,7 +22,8 @@ function blockedAt(px, py, r) {
 
 function updatePlayer(dt) {
   const p = Game.player, k = Game.keys;
-  const speed = (k.shift ? 190 : 120);
+  const run = Settings.alwaysRun ? !k.shift : k.shift; // Shift flips walking/running
+  const speed = run ? 190 : 120;
   let vx = 0, vy = 0;
   if (!UI.modalOpen) {
     if (k.w || k.arrowup) vy -= 1;
@@ -230,7 +231,7 @@ function updateNPC(n, dt) {
 
 function updateNPCs(dt) {
   const hour = (S.clock / 60) % 24;
-  const target = Math.min(120, Math.round(20 + 45 * demandAt(hour) + 4 * S.carts.length));
+  const target = Math.min(160, Math.round((20 + 45 * demandAt(hour) + 4 * (S.carts.length + S.shops.length)) * CROWD_LEVELS[Settings.crowd]));
   Game.timers.spawn -= dt;
   if (Game.timers.spawn <= 0) {
     Game.timers.spawn = 0.35;
@@ -357,6 +358,7 @@ function updateCars(dt) {
 
 // ---------------- Floating "+$9" texts ----------------
 function floatText(x, y, text, color = '#fff') {
+  if (!Settings.floats) return;
   Game.floats.push({ x, y, text, color, t: 0 });
 }
 function updateFloats(dt) {

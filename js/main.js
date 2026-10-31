@@ -136,7 +136,7 @@ function setupInput() {
     const h = hitTest(w.x, w.y);
     canvas.style.cursor = UI.placement ? 'crosshair' : h ? 'pointer' : 'default';
     const tip = $('tooltip');
-    if (h && !UI.placement) {
+    if (h && !UI.placement && Settings.tooltips) {
       tip.innerHTML = tooltipText(h);
       tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px';
       tip.classList.remove('hidden');
@@ -235,7 +235,7 @@ function update(dt) {
     checkGoals();
     maybeShowStory();
   }
-  if ((tm.save -= dt) <= 0) { tm.save = 15; saveGame(); }
+  if ((tm.save -= dt) <= 0) { tm.save = Settings.autosave; saveGame(); }
   if ((tm.hud -= dt) <= 0) { tm.hud = 0.25; updateHUD(); updateActionBar(); }
   if ((tm.panel -= dt) <= 0) { tm.panel = 1; renderPanel(false); }
 }
@@ -254,5 +254,8 @@ function frame(now) {
 window.addEventListener('DOMContentLoaded', () => {
   initRenderer();
   setupInput();
+  applySettings();
+  $('version-tag').textContent = GAME_VERSION;
+  $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });
   setupTitleScreen();
 });

@@ -426,7 +426,7 @@ function render() {
   // night
   const dark = darknessAt((S.clock / 60) % 24);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (dark > 0.01) {
+  if (Settings.night && dark > 0.01) {
     const lc = lightCtx;
     lc.globalCompositeOperation = 'source-over';
     lc.clearRect(0, 0, viewW, viewH);

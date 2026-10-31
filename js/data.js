@@ -3,6 +3,8 @@
 //  Tweak values here to balance the game.
 // =============================================================
 
+const GAME_VERSION = 'v1-beta';
+
 const TILE = 32;                 // size of one map square in pixels
 const BLOCK = 12;                // a city block (incl. road) is 12 tiles wide
 const BLOCKS_X = 8, BLOCKS_Y = 6;

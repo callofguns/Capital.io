@@ -42,6 +42,7 @@
   <div id="placement-hint" class="hidden"></div>
   <div id="tooltip" class="hidden"></div>
   <div id="toasts"></div>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
   <div id="modal" class="hidden"><div id="modal-box"></div></div>
 
   <!-- Start screen -->
@@ -56,11 +57,13 @@
       <div id="title-cuisines" class="cuisine-grid"></div>
       <button id="start-btn" class="btn big">🚀 Start new business</button>
       <p class="muted small">A 2D city business game inspired by Capital Rift. Your game saves in this browser.</p>
+      <div class="title-version" id="version-tag"></div>
     </div>
   </div>
 
   <script src="js/data.js"></script>
   <script src="js/util.js"></script>
+  <script src="js/settings.js"></script>
   <script src="js/world.js"></script>
   <script src="js/economy.js"></script>
   <script src="js/entities.js"></script>

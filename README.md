@@ -1,4 +1,4 @@
-# Capital.io 🍔🏙️
+# Capital.io 🍔🏙️ — v1-beta
 
 A 2D top-down business game for the browser, inspired by **Capital Rift**.
 Start with one food cart in the town square, cook for customers, hire workers,
@@ -16,7 +16,7 @@ python3 -m http.server 8000
 # then open http://localhost:8000 in your browser
 ```
 
-Your game saves automatically in your browser (localStorage).
+Your game saves automatically in your browser (localStorage). In **❓ Help → ⚙️ Settings** you can turn things on or off (minimap, night lighting, crowds, autosave…) and download a backup of your save.
 
 ## Controls
 

@@ -443,27 +443,55 @@ const PANELS = {
     return { title: '🏦 Bank', html };
   },
 
-  // ----- help -----
-  help() {
+  // ----- help + settings -----
+  help(tab) {
+    tab = tab || UI.helpTab || 'howto';
+    UI.helpTab = tab;
+    const tabs = `<div class="tabs">${[['howto', '📖 How to play'], ['settings', '⚙️ Settings']].map(([k, l]) =>
+      `<button class="tab ${tab === k ? 'sel' : ''}" data-act="help-tab" data-t="${k}">${l}</button>`).join('')}</div>`;
+    const title = `❓ Help <span class="version">${GAME_VERSION}</span>`;
+    if (tab === 'settings') return { title, html: tabs + settingsHtml() };
     return {
-      title: '❓ How to play', html: `
+      title, html: tabs + `
       <div class="card"><b>Controls</b><ul>
         <li><kbd>WASD</kbd> / arrows or <b>click</b> the map to walk (<kbd>Shift</kbd> = run)</li>
         <li><kbd>E</kbd> cook at your cart · <kbd>C</kbd> clean it</li>
         <li>Mouse wheel or +/− to zoom · click the minimap to walk there</li>
-        <li>Click carts, plots and buildings to open them · <kbd>Esc</kbd> closes things</li></ul></div>
+        <li>Click carts, shops, plots and buildings to open them · <kbd>Esc</kbd> closes things</li></ul></div>
       <div class="card"><b>How to get rich</b><ol>
+        <li>Follow the story: your goals are in the top-left. Click them to read the chapter again.</li>
         <li>Stand by your cart. Customers line up — press <kbd>E</kbd> and play the cooking minigame. Better cooking = bigger tips and better reviews.</li>
         <li>Keep it clean and stocked. Dirty or expensive carts scare customers away.</li>
         <li>Buy upgrades, then <b>hire a worker</b> so the cart runs without you.</li>
-        <li>Buy more carts and spread them out. The same food close by is competition.</li>
-        <li>Buy land outside the city: farm crops or raise animals to make your own cheap ingredients, or sell them on the market.</li>
-        <li>Buy buildings for rent, and park spare cash in the bank.</li></ol>
-        <p class="muted small">Lunch (11–14) and dinner (17–20) are the busiest times. At night the streets are quiet.</p></div>
-      <div class="card"><b>Game</b><p class="muted small">Your game saves automatically in this browser.</p>
-        <div class="btn-row">${btn('💾 Save now', 'save')}${btn('🗑️ Start over', 'reset', {}, 'ghost danger')}</div></div>` };
+        <li>In Chapter 3, rent a <b>shop</b>: place counters and shelves, stock it, and hire cashiers.</li>
+        <li>Buy land outside the city to farm and raise animals, buy buildings for rent, and park spare cash in the bank.</li></ol>
+        <p class="muted small">Lunch (11–14) and dinner (17–20) are the busiest times. At night the streets are quiet.</p></div>` };
   },
 };
+
+function settingsHtml() {
+  const toggle = (k, label, desc) => `<div class="row setting"><div class="grow"><b>${label}</b><div class="muted small">${desc}</div></div>
+    <button class="switch ${Settings[k] ? 'on' : ''}" data-act="setting" data-k="${k}" data-v="${!Settings[k]}"><i></i></button></div>`;
+  const choice = (k, label, desc, opts) => `<div class="row setting"><div class="grow"><b>${label}</b><div class="muted small">${desc}</div></div>
+    <div class="seg">${opts.map(([v, l]) => `<button class="${String(Settings[k]) === String(v) ? 'sel' : ''}" data-act="setting" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div></div>`;
+  return `
+    <div class="card"><b>Display</b>
+      ${toggle('minimap', 'Minimap', 'The little map in the corner')}
+      ${toggle('night', 'Night lighting', 'Dark nights with glowing street lights')}
+      ${toggle('floats', 'Money pop-ups', 'Floating "+$9" when you sell')}
+      ${toggle('tooltips', 'Hover info', 'Show details when the mouse is over things')}
+    </div>
+    <div class="card"><b>Gameplay</b>
+      ${toggle('alwaysRun', 'Always run', 'Run without holding Shift (Shift makes you walk)')}
+      ${choice('crowd', 'Crowds', 'Fewer people runs faster on slow computers', [['calm', 'Calm'], ['normal', 'Normal'], ['busy', 'Busy']])}
+      ${choice('autosave', 'Autosave', 'How often your game saves itself', [[10, '10s'], [15, '15s'], [30, '30s'], [60, '1 min']])}
+    </div>
+    <div class="card"><b>Your save</b><p class="muted small">Your game lives in this browser. Download a backup to keep it safe or move it to another computer.</p>
+      <div class="btn-row">${btn('💾 Save now', 'save')}${btn('📥 Download backup', 'export-save', {}, 'ghost')}${btn('📤 Load backup', 'import-save', {}, 'ghost')}</div>
+      <div class="btn-row">${btn('↩️ Reset settings', 'reset-settings', {}, 'ghost')}${btn('🗑️ Start over', 'reset', {}, 'ghost danger')}</div></div>
+    <div class="card about"><b>Capital.io</b> <span class="version">${GAME_VERSION}</span>
+      <p class="muted small">A 2D city business game inspired by Capital Rift and Big Ambitions. This is a beta — things may change and balance isn't final.</p></div>`;
+}
 
 function assignOptions(w) {
   const carts = S.carts.filter(c => !workerFor('cart', c.id));
@@ -641,9 +669,20 @@ const ACTIONS = {
     S.bank.savings -= a; S.money += a;
   },
   save: () => { saveGame(); toast('Game saved 💾', 'good'); },
+  'help-tab': d => openPanel('help:' + d.t),
+  setting: d => {
+    const v = d.v === 'true' ? true : d.v === 'false' ? false : isNaN(+d.v) ? d.v : +d.v;
+    Settings[d.k] = v;
+    saveSettings();
+    if (d.k === 'autosave') Game.timers.save = Math.min(Game.timers.save, v);
+  },
+  'reset-settings': () => { Settings = { ...SETTINGS_DEFAULT }; saveSettings(); toast('Settings reset', 'info'); },
+  'export-save': () => exportSave(),
+  'import-save': () => $('import-file').click(),
   reset: () => {
     if (!confirm('Delete your save and start over? This cannot be undone.')) return;
     Game.running = false;
+    Game.noSave = true; // otherwise the game saves itself again while reloading
     deleteSave();
     window.onbeforeunload = null;
     location.reload();
