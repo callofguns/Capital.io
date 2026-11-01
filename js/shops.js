@@ -37,21 +37,36 @@ function shopOpen(s) {
   return countFurn(s, 'counter') > 0 && shopStockTotal(s) > 0 && shopCashiers(s).length > 0;
 }
 
-function shopAppeal(s) {
-  let a = 45 + shopDecor(s) + (s.rating - 3) * 6 - s.dirt * 0.3;
+// Your shops of the same type within this many squares compete with each other
+const SHOP_COMPETE_RADIUS = 12, SHOP_COMPETE_PENALTY = 8;
+const SHOP_PLURALS = { coffee: 'coffee shops', bakery: 'bakeries', grocery: 'grocery stores', flowers: 'flower shops', gifts: 'gift shops' };
+
+function sameShopsNearby(s) {
+  const d = shopBuilding(s).door;
+  return S.shops.filter(o => o !== s && o.type === s.type && dist(d.x, d.y, shopBuilding(o).door.x, shopBuilding(o).door.y) < SHOP_COMPETE_RADIUS).length;
+}
+
+// Everything that makes a shop more or less appealing, one line each
+function shopAppealParts(s) {
+  const T_ = SHOP_TYPES[s.type], parts = [];
+  parts.push({ label: 'Starting point', value: 45 });
+  if (shopDecor(s)) parts.push({ label: 'Decorations', value: shopDecor(s) });
+  parts.push({ label: `Reviews (${s.rating.toFixed(1)} stars)`, value: (s.rating - 3) * 6 });
+  parts.push({ label: `Dirt (${Math.round(s.dirt)}%)`, value: -s.dirt * 0.3 });
   let ratio = 0, n = 0;
-  for (const p of SHOP_TYPES[s.type].products) {
+  for (const p of T_.products) {
     if (!s.stock[p]) continue;
     ratio += s.prices[p] / productInfo(p).price; n++;
   }
-  if (n) a -= (ratio / n - 1) * 60;   // expensive = less appealing
-  a += n * 2;                          // more choice = more appealing
-  const d = shopBuilding(s).door;
-  for (const o of S.shops) {           // the same kind of shop nearby = competition
-    const od = shopBuilding(o).door;
-    if (o !== s && o.type === s.type && dist(d.x, d.y, od.x, od.y) < 12) a -= 8;
-  }
-  return clamp(a, 3, 97);
+  if (n) parts.push({ label: 'Prices compared to normal', value: -(ratio / n - 1) * 60 });
+  parts.push({ label: `Products in stock (${n})`, value: n * 2 });
+  const c = sameShopsNearby(s), kinds = SHOP_PLURALS[s.type];
+  parts.push({ label: c ? `${c} other ${c > 1 ? kinds : T_.name.toLowerCase()} of yours nearby` : `None of your other ${kinds} are nearby`, value: -SHOP_COMPETE_PENALTY * c, competition: c });
+  return parts;
+}
+
+function shopAppeal(s) {
+  return clamp(shopAppealParts(s).reduce((sum, p) => sum + p.value, 0), 3, 97);
 }
 
 // Interior cell -> pixel position on the map
@@ -430,6 +445,7 @@ PANELS.shop = function (id) {
       <div><span>Inside now</span><b>${s._visitors.filter(v => v.state === 'inShop').length}/${shopMaxInside(s)}</b></div>
       <div><span>${s.owned ? 'Building' : 'Rent'}</span><b>${s.owned ? 'Yours' : fmtMoney(b.leasePerMin) + '/min'}</b></div></div>
     <div class="label-row"><span>Appeal</span><span>${Math.round(appeal)}%</span></div>${bar(appeal, appeal > 55 ? '#2a9d8f' : appeal > 30 ? '#e9c46a' : '#e63946')}
+    ${appealBreakdown(shopAppealParts(s))}
     <div class="label-row"><span>Dirt</span><span>${Math.round(s.dirt)}%</span></div>${bar(s.dirt, '#8b5e34')}
     <div class="btn-row">${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) + (s.dirt > 5 ? btn('🧽 Clean', 'shop-clean', { id: s.id }) : '') : btn('🚀 Go there', 'shop-travel', { id: s.id })}
       ${btn('✏️ Rename', 'shop-rename', { id: s.id }, 'ghost')}</div></div>`;

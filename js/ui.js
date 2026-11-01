@@ -244,6 +244,7 @@ const PANELS = {
         <div><span>Waiting</span><b>${c._queue.length}/${cartQueueMax(c)}</b></div><div><span>Gave up waiting</span><b>${c.lost}</b></div>
       </div>
       <div class="label-row"><span>Appeal</span><span>${Math.round(appeal)}%</span></div>${bar(appeal, appeal > 55 ? '#2a9d8f' : appeal > 30 ? '#e9c46a' : '#e63946')}
+      ${appealBreakdown(cartAppealParts(c))}
       <div class="label-row"><span>Dirt</span><span>${Math.round(c.dirt)}%</span></div>${bar(c.dirt, '#8b5e34')}
       <div class="label-row"><span>Ingredients</span><span>enough for ${portions}/${cap} meals</span></div>${bar(portions / cap * 100, '#4cc9f0')}
     </div>`;
@@ -505,6 +506,19 @@ function settingsHtml() {
       <p class="muted small">A 2D city business game inspired by Capital Rift and Big Ambitions. It's still in beta, so things might change and some prices might feel off.</p></div>`;
 }
 
+// The list under the appeal bar: what's helping (+) and what's hurting (−)
+function appealBreakdown(parts) {
+  const raw = parts.reduce((sum, p) => sum + p.value, 0);
+  const rows = parts.map(p => {
+    const v = Math.round(p.value);
+    const num = v > 0 ? `+${v}` : v < 0 ? `−${-v}` : '0';
+    const icon = p.competition != null ? (p.competition ? '⚠️ ' : '✅ ') : '';
+    return `<div class="why-row ${p.competition ? 'warn' : ''}"><span>${icon}${p.label}</span><b class="${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${num}</b></div>`;
+  }).join('');
+  const capped = raw < 3 || raw > 97 ? `<div class="muted small">Appeal can't go below 3% or above 97%.</div>` : '';
+  return `<div class="why"><div class="why-title">What's affecting your appeal</div>${rows}${capped}</div>`;
+}
+
 function assignOptions(w) {
   const carts = S.carts.filter(c => !workerFor('cart', c.id));
   const plots = Object.keys(S.plots).filter(id => S.plots[id].type && !workerFor('plot', id));
@@ -530,12 +544,49 @@ function validCartSpot(x, y, ignoreId) {
 function startPlacement(p) {
   UI.placement = p;
   closePanel();
-  $('placement-hint').innerHTML = `${CUISINES[p.cuisine].emoji} ${IS_TOUCH ? 'Tap' : 'Click'} an empty <b>sidewalk</b> or <b>plaza</b> spot for your cart ${p.mode === 'new' ? `(${fmtMoney(cartCost(S.carts.length))})` : ''} <button class="btn small ghost" data-act="cancel-place">✕ Cancel</button>`;
+  updatePlacementHint();
   $('placement-hint').classList.remove('hidden');
 }
 function endPlacement() {
   UI.placement = null;
   $('placement-hint').classList.add('hidden');
+}
+
+// The spot being looked at: where your mouse is, or (on phones) the spot you tapped
+function placementSpot() {
+  const p = UI.placement;
+  return IS_TOUCH ? p.preview || null : UI.hoverTile;
+}
+
+// The hint at the top while placing a cart. It warns you about same-food carts
+// near the spot before you pay for it.
+function updatePlacementHint() {
+  const p = UI.placement;
+  if (!p) return;
+  const C = CUISINES[p.cuisine], food = C.name.toLowerCase(), spot = placementSpot();
+  const price = p.mode === 'new' ? ` (${fmtMoney(cartCost(S.carts.length))})` : '';
+  let info = '', confirm = '';
+  if (spot) {
+    if (!validCartSpot(spot.x, spot.y, p.cartId)) info = `🚫 You can't park a cart here`;
+    else {
+      const n = sameFoodNearby(p.cuisine, spot.x, spot.y, p.cartId);
+      info = n ? `⚠️ ${n} other ${food} cart${n > 1 ? 's' : ''} nearby (−${n * COMPETE_PENALTY} appeal)` : `✅ No other ${food} carts nearby. Nice spot!`;
+      if (IS_TOUCH) confirm = `<button class="btn small" data-act="place-confirm">✅ Place here${price}</button>`;
+    }
+  }
+  const key = p.cuisine + '|' + info;
+  if ($('placement-hint')._key === key) return; // nothing changed, don't rebuild the buttons
+  $('placement-hint')._key = key;
+  $('placement-hint').innerHTML = `<div>${C.emoji} ${IS_TOUCH ? 'Tap' : 'Click'} an empty <b>sidewalk</b> or <b>plaza</b> spot for your cart${IS_TOUCH ? '' : price}</div>
+    ${info ? `<div class="ph-info">${info}</div>` : ''}
+    <div class="ph-buttons">${confirm}<button class="btn small ghost" data-act="cancel-place">✕ Cancel</button></div>`;
+}
+
+// What tapping/clicking the map does while placing a cart
+function placementTap(x, y) {
+  if (!IS_TOUCH) { tryPlace(x, y); return; }
+  UI.placement.preview = { x, y }; // phones: preview first, then press "Place here"
+  updatePlacementHint();
 }
 function tryPlace(x, y) {
   const p = UI.placement;
@@ -683,6 +734,7 @@ const ACTIONS = {
   save: () => { saveGame(); toast('Saved! 💾', 'good'); },
   'help-tab': d => openPanel('help:' + d.t),
   'cancel-place': () => endPlacement(),
+  'place-confirm': () => { const s = UI.placement && UI.placement.preview; if (s) tryPlace(s.x, s.y); },
   fullscreen: () => toggleFullscreen(),
   setting: d => {
     const v = d.v === 'true' ? true : d.v === 'false' ? false : isNaN(+d.v) ? d.v : +d.v;

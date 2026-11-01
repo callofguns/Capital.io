@@ -134,6 +134,7 @@ function setupInput() {
   canvas.addEventListener('pointermove', e => {
     const w = screenToWorld(e.clientX, e.clientY);
     UI.hoverTile = { x: Math.floor(w.x / TILE), y: Math.floor(w.y / TILE) };
+    if (UI.placement && !IS_TOUCH) updatePlacementHint();
     const h = hitTest(w.x, w.y);
     canvas.style.cursor = UI.placement ? 'crosshair' : h ? 'pointer' : 'default';
     const tip = $('tooltip');
@@ -150,7 +151,7 @@ function setupInput() {
     if (!Game.running || UI.modalOpen) return;
     const w = screenToWorld(e.clientX, e.clientY);
     const tx = Math.floor(w.x / TILE), ty = Math.floor(w.y / TILE);
-    if (UI.placement) { tryPlace(tx, ty); return; }
+    if (UI.placement) { placementTap(tx, ty); return; }
     // A menu is open: tapping the map just closes it (you don't walk or open anything)
     if (UI.panelKey) { closePanel(); return; }
     const h = hitTest(w.x, w.y);

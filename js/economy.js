@@ -140,18 +140,35 @@ function cartOpen(c) {
   return !!workerFor('cart', c.id) || playerNearTile(c.x, c.y, 7);
 }
 
-// How attractive a cart is to customers (0-100)
+// Carts selling the same food within this many squares steal customers
+const COMPETE_RADIUS = 10, COMPETE_PENALTY = 9;
+
+// How many other carts (yours and rivals') sell the same food near (x, y)
+function sameFoodNearby(cuisine, x, y, ignoreId) {
+  let n = 0;
+  for (const o of allCarts()) if (o.id !== ignoreId && o.cuisine === cuisine && dist(o.x, o.y, x, y) < COMPETE_RADIUS) n++;
+  return n;
+}
+
+// Everything that makes a cart more or less appealing, one line each,
+// so the cart menu can show players exactly why
+function cartAppealParts(c) {
+  const C = CUISINES[c.cuisine], food = C.name.toLowerCase(), parts = [];
+  parts.push({ label: 'Starting point', value: 50 });
+  if (c.upgrades.recipe) parts.push({ label: `Recipe upgrades (level ${c.upgrades.recipe})`, value: c.upgrades.recipe * 3 });
+  if (c.upgrades.sign) parts.push({ label: `Signage upgrades (level ${c.upgrades.sign})`, value: c.upgrades.sign * 0.8 });
+  parts.push({ label: `Price (${fmtMoney(c.price)}, most charge ${fmtMoney(C.fair)})`, value: -(c.price / C.fair - 1) * 60 });
+  parts.push({ label: `Dirt (${Math.round(c.dirt)}%)`, value: -c.dirt * 0.35 });
+  parts.push({ label: `Reviews (${c.rating.toFixed(1)} stars)`, value: (c.rating - 3) * 6 });
+  const n = sameFoodNearby(c.cuisine, c.x, c.y, c.id);
+  parts.push({ label: n ? `${n} other ${food} cart${n > 1 ? 's' : ''} nearby` : `No other ${food} carts nearby`, value: -COMPETE_PENALTY * n, competition: n });
+  return parts;
+}
+
+// How attractive a cart is to customers (3-97)
 function cartAppeal(c) {
   if (c.rival) return c.appeal;
-  const C = CUISINES[c.cuisine];
-  let a = 50 + c.upgrades.recipe * 3 + c.upgrades.sign * 0.8;
-  a -= (c.price / C.fair - 1) * 60;             // expensive = less appealing
-  a -= c.dirt * 0.35;                            // dirty = gross
-  a += (c.rating - 3) * 6;                       // reputation
-  for (const o of allCarts()) {                  // same food nearby = competition
-    if (o !== c && o.cuisine === c.cuisine && dist(o.x, o.y, c.x, c.y) < 10) a -= 9;
-  }
-  return clamp(a, 3, 97);
+  return clamp(cartAppealParts(c).reduce((sum, p) => sum + p.value, 0), 3, 97);
 }
 
 function cartCookTime(c, worker) {

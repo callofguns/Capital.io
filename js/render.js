@@ -391,8 +391,16 @@ function render() {
   }
 
   // placement ghost
-  if (UI.placement && UI.hoverTile) {
-    const { x, y } = UI.hoverTile, ok = validCartSpot(x, y, UI.placement.cartId);
+  if (UI.placement && placementSpot()) {
+    const { x, y } = placementSpot(), ok = validCartSpot(x, y, UI.placement.cartId);
+    // the area where same-food carts compete, and red rings on the ones inside it
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.setLineDash([8, 6]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc((x + 0.5) * TILE, (y + 0.5) * TILE, COMPETE_RADIUS * TILE, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    for (const o of allCarts()) {
+      if (o.id === UI.placement.cartId || o.cuisine !== UI.placement.cuisine || dist(o.x, o.y, x, y) >= COMPETE_RADIUS) continue;
+      ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc((o.x + 0.5) * TILE, (o.y + 0.5) * TILE - 8, 24, 0, Math.PI * 2); ctx.stroke();
+    }
     ctx.fillStyle = ok ? 'rgba(80,220,120,0.35)' : 'rgba(230,60,60,0.35)';
     ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
     ctx.globalAlpha = 0.7;

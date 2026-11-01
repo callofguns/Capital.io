@@ -121,6 +121,13 @@ kbd { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2
 ul, ol { padding-left: 20px; }
 li { margin: 4px 0; }
 
+/* appeal breakdown */
+.why { background: rgba(0,0,0,0.2); border-radius: 9px; padding: 7px 10px; margin-top: 6px; }
+.why-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+.why-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding: 2px 0; }
+.why-row b { min-width: 32px; text-align: right; }
+.why-row.warn { color: #ffb4a2; font-weight: 700; }
+
 /* ---------- Cuisine picker ---------- */
 .cuisine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .cuisine-btn {
@@ -309,7 +316,9 @@ body.touch button { touch-action: manipulation; }
 body.touch kbd { display: none; }
 body.touch #action-bar .btn { padding: 10px 14px; font-size: 15px; }
 #mg-hold, .mg-ing, .mg-bar, #mg-go { touch-action: none; -webkit-user-select: none; user-select: none; }
-#placement-hint .btn { margin-left: 6px; vertical-align: middle; }
+#placement-hint { text-align: center; }
+#placement-hint .ph-info { margin-top: 5px; font-size: 13px; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 4px 8px; }
+#placement-hint .ph-buttons { display: flex; gap: 6px; justify-content: center; margin-top: 6px; }
 
 /* ---------- Phones: upright (portrait) ---------- */
 @media (max-width: 760px) {
