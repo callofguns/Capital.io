@@ -232,7 +232,8 @@ function update(dt) {
     maybeShowStory();
   }
   if ((tm.save -= dt) <= 0) { tm.save = Settings.autosave; saveGame(); }
-  if ((tm.hud -= dt) <= 0) { tm.hud = 0.25; updateHUD(); updateActionBar(); }
+  if ((tm.hud -= dt) <= 0) { tm.hud = 0.25; updateHUD(); }
+  updateActionBar(); // every frame, so the Cook/Manage buttons show up the moment you arrive
   if ((tm.panel -= dt) <= 0) { tm.panel = 1; renderPanel(false); }
 }
 

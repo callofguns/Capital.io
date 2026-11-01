@@ -15,6 +15,8 @@ function setupTouch() {
   setupJoystick();
   setupPinchZoom();
   setupSwipeToClose();
+  // iPhones only show the "pressed" look on buttons if the page listens for touches
+  document.addEventListener('touchstart', () => {}, { passive: true });
   // turning the phone redraws the shop editor at the new size
   window.addEventListener('resize', () => { if (UI.editShop) renderShopEditor(); });
 }

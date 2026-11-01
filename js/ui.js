@@ -132,15 +132,19 @@ function nearestShopDoor() {
   return null;
 }
 
+// Runs every frame. The buttons are only rebuilt when they actually change
+// (like walking up to a different cart). Things that change a lot, like how
+// many people are waiting, are updated in place, so a button never gets
+// swapped out while your finger is on it.
 function updateActionBar() {
   const bar = $('action-bar');
-  let html = '';
+  let html = '', waiting = null;
   const c = nearestOwnCart();
   if (c) {
     const C = CUISINES[c.cuisine];
-    const waiting = c._queue.filter(n => n.arrived).length;
+    waiting = c._queue.filter(n => n.arrived).length;
     html += `<span class="ab-label">${C.emoji} Your ${C.name} cart</span>`;
-    html += `<button class="btn ${waiting ? 'pulse' : ''}" data-act="cart-cook" data-id="${c.id}">🍳 Cook <kbd>E</kbd>${waiting ? ` <span class="badge">${waiting}</span>` : ''}</button>`;
+    html += `<button class="btn" data-act="cart-cook" data-id="${c.id}">🍳 Cook <kbd>E</kbd> <span class="badge" hidden></span></button>`;
     if (c.dirt > 5) html += `<button class="btn" data-act="cart-clean" data-id="${c.id}">🧽 Clean <kbd>C</kbd></button>`;
     html += `<button class="btn ghost" data-act="open" data-key="cart:${c.id}">📋 Manage</button>`;
   } else if (nearestShopDoor()) {
@@ -162,8 +166,16 @@ function updateActionBar() {
       html += `<button class="btn" data-act="open" data-key="plot:${P.id}">${st ? '📋 Manage' : '🔎 Take a look (' + fmtMoney(P.price) + ')'}</button>`;
     }
   }
-  if (html !== bar._html) { bar.innerHTML = html; bar._html = html; }
-  bar.classList.toggle('hidden', !html);
+  if (html !== bar._html) { bar.innerHTML = html; bar._html = html; bar._waiting = null; }
+  if (waiting !== null && waiting !== bar._waiting) {
+    const cook = bar.querySelector('[data-act="cart-cook"]'), badge = cook.querySelector('.badge');
+    badge.textContent = waiting;
+    badge.hidden = !waiting;
+    cook.classList.toggle('pulse', waiting > 0);
+    bar._waiting = waiting;
+  }
+  const hide = !html;
+  if (hide !== bar._hide) { bar.classList.toggle('hidden', hide); bar._hide = hide; }
 }
 
 // ---------- Panels ----------
