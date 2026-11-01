@@ -1,6 +1,6 @@
 # Capital.io 🍔🏙️
 
-**Version:** v1.1-beta
+**Version:** v1.2-beta
 
 A 2D city business game you play in your browser, inspired by **Capital Rift** and **Big Ambitions**.
 You start out with one food cart in the town square. From there you cook for customers, hire workers,
@@ -31,7 +31,7 @@ Your game saves on its own, right in your browser. In **❓ Help → ⚙️ Sett
 | `C` | Scrub your cart clean |
 | Mouse wheel, `+` / `-` | Zoom in and out |
 | Click the minimap | Open the big city map |
-| `Esc` | Close menus or cancel |
+| `Esc`, or click the map | Close menus (clicking the map to close a menu won't make you walk) |
 
 ### On a phone or tablet
 
@@ -42,7 +42,7 @@ Your game saves on its own, right in your browser. In **❓ Help → ⚙️ Sett
 | Tap **🍳 Cook** or **🧽 Clean** | Cook or clean at your cart |
 | Pinch with two fingers | Zoom in and out |
 | Tap the minimap | Open the big city map |
-| Swipe a menu down | Close it |
+| Swipe a menu down, or tap the map | Close it |
 
 It works with your phone upright or sideways. Once the game is online (on GitHub Pages, for example),
 use your browser's **Add to Home Screen** button to install it like an app. It'll open full screen.

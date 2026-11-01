@@ -151,6 +151,8 @@ function setupInput() {
     const w = screenToWorld(e.clientX, e.clientY);
     const tx = Math.floor(w.x / TILE), ty = Math.floor(w.y / TILE);
     if (UI.placement) { tryPlace(tx, ty); return; }
+    // A menu is open: tapping the map just closes it (you don't walk or open anything)
+    if (UI.panelKey) { closePanel(); return; }
     const h = hitTest(w.x, w.y);
     if (h && h.kind === 'cart') {
       if (h.c.rival) toast(`${CUISINES[h.c.cuisine].emoji} That's ${h.c.name}, one of your rivals. They charge ${fmtMoney(h.c.price)}.`, 'info');
