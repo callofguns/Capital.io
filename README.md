@@ -1,4 +1,4 @@
-# Capital.io 🍔🏙️ — v1-beta
+# Capital.io 🍔🏙️ — v1.1-beta
 
 A 2D top-down business game for the browser, inspired by **Capital Rift**.
 Start with one food cart in the town square, cook for customers, hire workers,
