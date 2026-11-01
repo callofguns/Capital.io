@@ -1,7 +1,7 @@
 {
   "name": "Capital.io",
   "short_name": "Capital.io",
-  "description": "Start with one food cart. End with an empire.",
+  "description": "Start with one food cart. End up with an empire.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",

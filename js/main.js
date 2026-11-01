@@ -7,7 +7,7 @@ function setupTitleScreen() {
   const grid = $('title-cuisines');
   let chosen = 'burger';
   grid.innerHTML = Object.entries(CUISINES).map(([k, C]) =>
-    `<button class="cuisine-btn ${k === chosen ? 'sel' : ''}" data-c="${k}"><span>${C.emoji}</span>${C.name}<small>${C.game === 'timing' ? 'timing game' : C.game === 'hold' ? 'hold & release' : 'combo game'}</small></button>`).join('');
+    `<button class="cuisine-btn ${k === chosen ? 'sel' : ''}" data-c="${k}"><span>${C.emoji}</span>${C.name}<small>${C.game === 'timing' ? 'timing game' : C.game === 'hold' ? 'hold and let go' : 'combo game'}</small></button>`).join('');
   grid.onclick = e => {
     const b = e.target.closest('[data-c]');
     if (!b) return;
@@ -18,13 +18,13 @@ function setupTitleScreen() {
   const save = loadSave();
   if (save) {
     $('continue-btn').classList.remove('hidden');
-    $('continue-btn').innerHTML = `▶ Continue as <b>${escapeHtml(save.name)}</b> <small>(${fmtMoney(save.money)})</small>`;
+    $('continue-btn').innerHTML = `▶ Keep playing as <b>${escapeHtml(save.name)}</b> <small>(${fmtMoney(save.money)})</small>`;
     $('continue-btn').onclick = () => startGame(save, false);
-    $('new-game-label').textContent = 'Or start a new business:';
+    $('new-game-label').textContent = 'Or start fresh with a new name:';
   }
   $('start-btn').onclick = () => {
     const name = ($('player-name').value || '').trim().slice(0, 16) || 'Tycoon';
-    if (save && !confirm('Starting a new game will delete your current save. Continue?')) return;
+    if (save && !confirm('Starting a new game will delete your current save. Are you sure?')) return;
     startGame(newState(name, chosen), true);
   };
   $('player-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('start-btn').click(); });
@@ -108,13 +108,14 @@ function setupInput() {
     if (e.target.tagName === 'INPUT') return;
     const k = e.key.toLowerCase();
     if (k === 'escape') {
-      if (Minigame.active) Minigame.cancel();
+      if (BigMap.open) closeBigMap();
+      else if (Minigame.active) Minigame.cancel();
       else if (UI.modalOpen && !Minigame.active) closeModal();
       else if (UI.placement) endPlacement();
       else closePanel();
       return;
     }
-    if (UI.modalOpen || !Game.running) return;
+    if (UI.modalOpen || UI.mapOpen || !Game.running) return;
     Game.keys[k] = true;
     if (e.shiftKey) Game.keys.shift = true;
     if (k === 'e') startCooking(nearestOwnCart());
@@ -152,7 +153,7 @@ function setupInput() {
     if (UI.placement) { tryPlace(tx, ty); return; }
     const h = hitTest(w.x, w.y);
     if (h && h.kind === 'cart') {
-      if (h.c.rival) toast(`${CUISINES[h.c.cuisine].emoji} ${h.c.name} — a rival! Sells for ${fmtMoney(h.c.price)}.`, 'info');
+      if (h.c.rival) toast(`${CUISINES[h.c.cuisine].emoji} That's ${h.c.name}, one of your rivals. They charge ${fmtMoney(h.c.price)}.`, 'info');
       else openPanel('cart:' + h.c.id);
       walkPlayerTo(h.c.x, h.c.y + 1);
       return;
@@ -165,11 +166,6 @@ function setupInput() {
 
   $('zoom-in').onclick = () => zoomBy(1.2);
   $('zoom-out').onclick = () => zoomBy(1 / 1.2);
-  $('minimap').addEventListener('click', e => {
-    const r = e.target.getBoundingClientRect();
-    const tx = Math.floor((e.clientX - r.left) / r.width * MAP_W), ty = Math.floor((e.clientY - r.top) / r.height * MAP_H);
-    walkPlayerTo(tx, ty);
-  });
 
   // Buttons everywhere use data-act="..." (see ACTIONS in ui.js)
   document.addEventListener('click', e => {
@@ -186,17 +182,17 @@ function setupInput() {
 function tooltipText(h) {
   if (h.kind === 'cart') {
     const c = h.c, C = CUISINES[c.cuisine];
-    return c.rival ? `<b>${C.emoji} ${escapeHtml(c.name)}</b><br>Rival · ${fmtMoney(c.price)}` : `<b>${C.emoji} Your ${C.name} cart</b><br>${fmtMoney(c.price)} · ${stars(c.rating)}`;
+    return c.rival ? `<b>${C.emoji} ${escapeHtml(c.name)}</b><br>A rival · charges ${fmtMoney(c.price)}` : `<b>${C.emoji} Your ${C.name} cart</b><br>${fmtMoney(c.price)} · ${stars(c.rating)}`;
   }
   if (h.kind === 'building') {
     const b = h.b, sh = shopAt(b.id);
     if (sh) return `<b>${SHOP_TYPES[sh.type].emoji} ${escapeHtml(sh.name)}</b><br>${shopOpen(sh) ? 'Open' : 'Closed'} · ${stars(sh.rating)}`;
-    if (b.forRent && !S.buildings[b.id]) return `<b>🏪 Storefront for rent</b><br>${fmtMoney(b.leasePerMin)}/min`;
-    if (S.buildings[b.id]) return `<b>🏢 Your ${b.kind}</b><br>+${fmtMoney(b.rentPerMin)}/min rent`;
+    if (b.forRent && !S.buildings[b.id]) return `<b>🏪 Shop for rent</b><br>${fmtMoney(b.leasePerMin)}/min`;
+    if (S.buildings[b.id]) return `<b>🏢 Your ${b.kind}</b><br>Pays you ${fmtMoney(b.rentPerMin)}/min`;
     return b.forSale ? `<b>🏢 ${b.kind}</b><br>For sale: ${fmtMoney(b.price)}` : `<b>🏢 ${b.kind}</b><br>Not for sale`;
   }
   const st = S.plots[h.P.id];
-  return st ? `<b>Your plot #${h.P.id + 1}</b><br>${st.type || 'empty land'}` : `<b>Land for sale</b><br>${fmtMoney(h.P.price)}`;
+  return st ? `<b>Your plot #${h.P.id + 1}</b><br>${st.type === 'farm' ? 'Farm' : st.type === 'ranch' ? 'Ranch' : 'Empty land'}` : `<b>Land for sale</b><br>${fmtMoney(h.P.price)}`;
 }
 
 function zoomBy(f) { Game.cam.zoom = clamp(Game.cam.zoom * f, 0.45, 2.2); }
@@ -247,6 +243,7 @@ function frame(now) {
   update(dt);
   render();
   if ((Game.timers.mini -= dt) <= 0) { Game.timers.mini = 0.2; renderMinimap(); }
+  if (BigMap.open) renderBigMap();
   requestAnimationFrame(frame);
 }
 
@@ -255,6 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initRenderer();
   setupInput();
   setupTouch();
+  setupBigMap();
   applySettings();
   $('version-tag').textContent = GAME_VERSION;
   $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });

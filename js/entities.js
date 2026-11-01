@@ -25,7 +25,7 @@ function updatePlayer(dt) {
   const run = Settings.alwaysRun ? !k.shift : k.shift; // Shift flips walking/running
   const speed = run ? 190 : 120;
   let vx = 0, vy = 0;
-  if (!UI.modalOpen) {
+  if (!UI.modalOpen && !UI.mapOpen) {
     if (k.w || k.arrowup) vy -= 1;
     if (k.s || k.arrowdown) vy += 1;
     if (k.a || k.arrowleft) vx -= 1;
@@ -34,7 +34,7 @@ function updatePlayer(dt) {
   // On-screen joystick (phones): push it all the way to run
   const joy = Math.hypot(Joy.dx, Joy.dy);
   let joySpeed = 0;
-  if (!UI.modalOpen && joy > 0.2) { vx = Joy.dx; vy = Joy.dy; joySpeed = joy > 0.9 ? 190 : 120; }
+  if (!UI.modalOpen && !UI.mapOpen && joy > 0.2) { vx = Joy.dx; vy = Joy.dy; joySpeed = joy > 0.9 ? 190 : 120; }
   p.moving = false;
   if (vx || vy) {
     p.path = [];

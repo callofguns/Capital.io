@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Capital.io">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <title>Capital.io — Build a Business Empire</title>
+  <title>Capital.io: Build a Business Empire</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -51,20 +51,29 @@
   <div id="tooltip" class="hidden"></div>
   <div id="toasts"></div>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
+  <div id="bigmap" class="hidden">
+    <div class="bm-head">
+      <h2>🗺️ City map</h2>
+      <div class="bm-zoom"><button id="bm-in" title="Zoom in">+</button><button id="bm-out" title="Zoom out">−</button><button id="bm-fit" title="Zoom out to see the whole city">Whole city</button></div>
+      <button id="bm-close" title="Close">✕</button>
+    </div>
+    <canvas id="bm-canvas"></canvas>
+    <div id="bm-legend"></div>
+  </div>
   <div id="modal" class="hidden"><div id="modal-box"></div></div>
 
   <!-- Start screen -->
   <div id="title-screen">
     <div class="title-card">
       <div class="logo">Capital<span>.io</span></div>
-      <p class="tagline">Start with one food cart. End with an empire.</p>
+      <p class="tagline">Start with one food cart. End up with an empire.</p>
       <button id="continue-btn" class="btn big hidden"></button>
-      <p id="new-game-label" class="muted">Your name:</p>
+      <p id="new-game-label" class="muted">What should we call you?</p>
       <input id="player-name" maxlength="16" placeholder="Your name" autocomplete="off">
-      <p class="muted">Pick your first food cart:</p>
+      <p class="muted">Pick your first food cart</p>
       <div id="title-cuisines" class="cuisine-grid"></div>
-      <button id="start-btn" class="btn big">🚀 Start new business</button>
-      <p class="muted small">A 2D city business game inspired by Capital Rift. Your game saves in this browser.</p>
+      <button id="start-btn" class="btn big">🚀 Start my business</button>
+      <p class="muted small">A 2D city business game inspired by Capital Rift. Your progress saves right here in this browser.</p>
       <div class="title-version" id="version-tag"></div>
     </div>
   </div>
@@ -80,6 +89,7 @@
   <script src="js/minigames.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/shops.js"></script>
+  <script src="js/bigmap.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

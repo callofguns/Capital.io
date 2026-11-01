@@ -19,7 +19,7 @@ const Minigame = {
       box.insertAdjacentHTML('beforeend', `<div class="mg-result ${score >= 0.85 ? 'great' : score >= 0.45 ? 'ok' : 'bad'}">${label}</div>`);
       setTimeout(() => { closeModal(); done(score); }, 750);
     };
-    const labelFor = s => s >= 0.9 ? 'PERFECT! ⭐' : s >= 0.7 ? 'Great!' : s >= 0.45 ? 'Good' : s >= 0.25 ? 'Meh…' : 'Burnt! 🔥';
+    const labelFor = s => s >= 0.9 ? 'PERFECT! ⭐' : s >= 0.7 ? 'Nice!' : s >= 0.45 ? 'Not bad' : s >= 0.25 ? 'Eh...' : 'Burnt! 🔥';
     const games = { timing: mgTiming, sequence: mgSequence, hold: mgHold, scrub: mgScrub };
     this.active = games[type](box, cart, finish, labelFor);
   },
@@ -39,7 +39,7 @@ function mgTiming(box, cart, finish, labelFor) {
   const center = rand(0.2 + zoneW / 2, 0.8 - zoneW / 2);
   box.innerHTML = `
     <div class="mg-title">${C.emoji} ${C.verb}</div>
-    <div class="mg-sub">Press <b>SPACE</b> or tap when the needle is in the green!</div>
+    <div class="mg-sub">${IS_TOUCH ? 'Tap' : 'Press <b>SPACE</b> or click'} when the needle hits the green!</div>
     <div class="mg-bar" id="mg-bar">
       <div class="mg-zone" style="left:${(center - zoneW / 2) * 100}%;width:${zoneW * 100}%"></div>
       <div class="mg-perfect" style="left:${(center - 0.015) * 100}%"></div>
@@ -80,7 +80,7 @@ function mgSequence(box, cart, finish, labelFor) {
   const limit = 8 + cart.upgrades.recipe * 0.3;
   box.innerHTML = `
     <div class="mg-title">${C.emoji} ${C.verb}</div>
-    <div class="mg-sub">Tap the ingredients in this order:</div>
+    <div class="mg-sub">${IS_TOUCH ? 'Tap' : 'Click'} the ingredients in this order:</div>
     <div class="mg-order">${order.map((e, i) => `<span data-i="${i}">${e}</span>`).join('')}</div>
     <div class="mg-timer"><div id="mg-time"></div></div>
     <div class="mg-grid">${buttons.map(e => `<button class="mg-ing">${e}</button>`).join('')}</div>`;
@@ -119,7 +119,7 @@ function mgHold(box, cart, finish, labelFor) {
   const lo = rand(0.58, 0.7), hi = lo + 0.13 + cart.upgrades.recipe * 0.008;
   box.innerHTML = `
     <div class="mg-title">${C.emoji} ${C.verb}</div>
-    <div class="mg-sub"><b>Hold</b> SPACE or the button, let go when it's in the golden zone.</div>
+    <div class="mg-sub"><b>Hold</b> ${IS_TOUCH ? 'the button' : 'SPACE or the button'}, then let go when it's in the golden zone.</div>
     <div class="mg-vbar"><div class="mg-gold" style="bottom:${lo * 100}%;height:${(hi - lo) * 100}%"></div><div class="mg-fill" id="mg-fill"></div></div>
     <button class="btn big" id="mg-hold">HOLD</button>`;
   let v = 0, holding = false, raf, last = performance.now(), done = false;
@@ -158,8 +158,8 @@ function mgHold(box, cart, finish, labelFor) {
 function mgScrub(box, cart, finish) {
   const n = 4 + Math.floor(cart.dirt / 12);
   box.innerHTML = `
-    <div class="mg-title">🧽 Scrub your cart clean!</div>
-    <div class="mg-sub">Click and drag over the dirt spots.</div>
+    <div class="mg-title">🧽 Time to scrub!</div>
+    <div class="mg-sub">${IS_TOUCH ? 'Rub your finger' : 'Click and drag'} over the dirty spots.</div>
     <div class="mg-cart" id="mg-cart"><div class="mg-cart-top" style="background:${cart.color || CUISINES[cart.cuisine].color}"></div></div>`;
   const area = box.querySelector('#mg-cart');
   const spots = [];
@@ -183,7 +183,7 @@ function mgScrub(box, cart, finish) {
     s.style.opacity = s.dataset.hp / 3;
     if (+s.dataset.hp <= 0) {
       s.remove(); left--;
-      if (left === 0) finish(1, 'Sparkling! ✨');
+      if (left === 0) finish(1, 'Squeaky clean! ✨');
     }
   };
   area.addEventListener('pointerdown', e => { down = true; rub(e); });

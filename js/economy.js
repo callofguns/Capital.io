@@ -32,7 +32,7 @@ function addMoney(amount, op = true) {
 }
 
 function spend(amount, op = false) {
-  if (S.money < amount - 1e-9) { toast(`Not enough money (need ${fmtMoney(amount)})`, 'bad'); return false; }
+  if (S.money < amount - 1e-9) { toast(`You need ${fmtMoney(amount)} for that`, 'bad'); return false; }
   addMoney(-amount, op);
   return true;
 }
@@ -67,7 +67,7 @@ function marketBuy(g, n, silent = false) {
   const cost = buyPrice(g) * n;
   if (S.money < cost) {
     n = Math.floor(S.money / buyPrice(g));
-    if (n <= 0) { if (!silent) toast('Not enough money', 'bad'); return 0; }
+    if (n <= 0) { if (!silent) toast("You don't have enough money for that", 'bad'); return 0; }
   }
   addMoney(-buyPrice(g) * n, true);
   S.inventory[g] += n;
@@ -77,13 +77,13 @@ function marketBuy(g, n, silent = false) {
 
 function marketSell(g, n) {
   n = Math.min(n, Math.floor(S.inventory[g]));
-  if (n <= 0) { toast(`You have no ${GOODS[g].name}`, 'bad'); return 0; }
+  if (n <= 0) { toast(`You don't have any ${GOODS[g].name.toLowerCase()}`, 'bad'); return 0; }
   const earned = sellPrice(g) * n;
   S.inventory[g] -= n;
   addMoney(earned, true);
   S.market[g].price = Math.max(GOODS[g].base * 0.4, S.market[g].price - GOODS[g].base * 0.0015 * n);
   S.stats.marketSold += n;
-  toast(`Sold ${n} ${GOODS[g].emoji} for ${fmtMoney(earned)}`, 'good');
+  toast(`Sold ${n} ${GOODS[g].emoji} for ${fmtMoney(earned)}!`, 'good');
   return n;
 }
 
@@ -172,9 +172,9 @@ function restockCart(c, silent = false) {
     if (got < need) missing = true;
   }
   if (!silent) {
-    if (bought === 0 && missing) toast('Not enough money to restock', 'bad');
-    else if (bought === 0) toast('Cart is already full', 'info');
-    else toast(`Restocked ${CUISINES[c.cuisine].emoji} cart`, 'good');
+    if (bought === 0 && missing) toast("You can't afford to restock right now", 'bad');
+    else if (bought === 0) toast('Your cart is already full', 'info');
+    else toast(`${CUISINES[c.cuisine].emoji} Cart restocked!`, 'good');
   }
   return bought;
 }
@@ -241,7 +241,7 @@ function giveXp(w, n) {
   while (w.level < WORKER_MAX_LEVEL && w.xp >= xpForLevel(w.level)) {
     w.xp -= xpForLevel(w.level);
     w.level++;
-    if (Game.running) toast(`⭐ ${w.name} reached level ${w.level}: ${WORKER_PERKS[w.level - 1]}!`, 'good');
+    if (Game.running) toast(`⭐ ${w.name} hit level ${w.level}! New skill: ${WORKER_PERKS[w.level - 1].toLowerCase()}`, 'good');
   }
 }
 
@@ -273,12 +273,12 @@ function plantPlot(pid, silent = false) {
   let n = 0;
   for (let i = 0; i < p.crops.length; i++) {
     if (p.crops[i]) continue;
-    if (S.money < cost) { if (!silent && n === 0) toast('Not enough money for seeds', 'bad'); break; }
+    if (S.money < cost) { if (!silent && n === 0) toast("You can't afford seeds right now", 'bad'); break; }
     addMoney(-cost);
     p.crops[i] = { c: p.seed, t: Date.now() };
     n++;
   }
-  if (n && !silent) toast(`Planted ${n} ${GOODS[p.seed].emoji} (${fmtMoney(n * cost)})`, 'good');
+  if (n && !silent) toast(`Planted ${n} ${GOODS[p.seed].emoji} for ${fmtMoney(n * cost)}`, 'good');
   return n;
 }
 
@@ -296,7 +296,7 @@ function harvestPlot(pid, silent = false, max = 999) {
     }
   }
   S.stats.harvested += n;
-  if (n && !silent) toast('Harvested ' + Object.entries(got).map(([g, q]) => `${q} ${GOODS[g].emoji}`).join(' '), 'good');
+  if (n && !silent) toast('You harvested ' + Object.entries(got).map(([g, q]) => `${q} ${GOODS[g].emoji}`).join(' '), 'good');
   return n;
 }
 
@@ -304,17 +304,17 @@ function ranchCollect(pid, silent = false) {
   const p = S.plots[pid];
   let n = 0;
   for (const g in p.output) { S.inventory[g] += p.output[g]; n += p.output[g]; p.output[g] = 0; }
-  if (!silent) toast(n ? `Collected ${n} goods` : 'Nothing to collect yet', n ? 'good' : 'info');
+  if (!silent) toast(n ? `Collected ${n} goods!` : 'Nothing to collect yet', n ? 'good' : 'info');
   return n;
 }
 
 function ranchFill(pid, silent = false) {
   const p = S.plots[pid];
   const need = Math.floor(TROUGH_MAX - p.trough);
-  if (need <= 0) { if (!silent) toast('Trough is already full', 'info'); return 0; }
+  if (need <= 0) { if (!silent) toast('The trough is already full', 'info'); return 0; }
   const got = obtainGoods('corn', need, true);
   p.trough += got;
-  if (!silent) toast(got ? `Added ${got} 🌽 to the trough` : 'No corn and not enough money', got ? 'good' : 'bad');
+  if (!silent) toast(got ? `Added ${got} 🌽 to the trough` : "You're out of corn and can't afford more", got ? 'good' : 'bad');
   return got;
 }
 

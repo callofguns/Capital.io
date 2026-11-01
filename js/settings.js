@@ -44,7 +44,7 @@ function exportSave() {
   a.download = `capitalio-${S.name.replace(/[^a-z0-9]/gi, '_')}-${GAME_VERSION}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('Save file downloaded 📥', 'good');
+  toast('Backup downloaded! 📥', 'good');
 }
 
 function importSave(file) {
@@ -52,8 +52,8 @@ function importSave(file) {
   reader.onload = () => {
     let s;
     try { s = JSON.parse(reader.result); } catch (e) { s = null; }
-    if (!s || s.v !== 1 || !s.carts || !s.seed) { toast("That file isn't a Capital.io save", 'bad'); return; }
-    if (!confirm(`Load the save for "${s.name}"? Your current game will be replaced.`)) return;
+    if (!s || s.v !== 1 || !s.carts || !s.seed) { toast("Hmm, that file isn't a Capital.io save", 'bad'); return; }
+    if (!confirm(`Load ${s.name}'s save? This replaces the game you have now.`)) return;
     Game.noSave = true; // stop the current game saving over it while the page reloads
     localStorage.setItem(SAVE_KEY, JSON.stringify(s));
     location.reload();

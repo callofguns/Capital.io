@@ -252,6 +252,29 @@ ul.small-list li { font-size: 13px; padding: 6px 10px; }
 body.no-minimap #minimap { display: none; }
 @media (min-width: 761px) { body.no-minimap #zoom-controls { left: 10px; } }
 
+/* ---------- Big map ---------- */
+#minimap { cursor: zoom-in; }
+#bigmap {
+  position: fixed; inset: 16px; z-index: 35; display: flex; flex-direction: column;
+  background: #181b24; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55); animation: pop .18s ease-out;
+}
+.bm-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.bm-head h2 { margin: 0; font: 700 19px 'Fredoka', sans-serif; flex: 1; }
+.bm-zoom { display: flex; gap: 6px; }
+.bm-zoom button, #bm-close { min-width: 36px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: rgba(255,255,255,0.08); color: var(--text); font: 800 15px 'Nunito', sans-serif; cursor: pointer; padding: 0 10px; }
+#bm-close { background: none; border: none; color: var(--muted); font-size: 18px; }
+#bm-canvas { flex: 1; width: 100%; min-height: 0; display: block; touch-action: none; cursor: grab; }
+#bm-canvas:active { cursor: grabbing; }
+#bm-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 700; color: var(--muted); }
+#bm-legend span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+#bm-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+@media (max-width: 760px), (max-height: 500px) {
+  #bigmap { inset: 0; border-radius: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .bm-head h2 { font-size: 16px; }
+  #bm-legend { flex-wrap: nowrap; overflow-x: auto; font-size: 11px; }
+}
+
 /* ---------- Title screen ---------- */
 #title-screen {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50; overflow: auto; padding: 20px;

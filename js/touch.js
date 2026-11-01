@@ -102,7 +102,7 @@ function setupSwipeToClose() {
 // ---------- Full screen (Android & desktop browsers) ----------
 function toggleFullscreen() {
   if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen().catch(() => toast("Your browser doesn't allow full screen here", 'bad'));
+  else document.documentElement.requestFullscreen().catch(() => toast("Your browser won't let the game go full screen here", 'bad'));
 }
 
 // ---------- Words: "tap" instead of keyboard keys ----------
@@ -116,10 +116,10 @@ function controlText(s) {
 
 function controlsList() {
   return IS_TOUCH
-    ? `<li>🕹️ Drag the joystick (bottom-left) or tap the map to walk</li>
-       <li>🍳 Tap <b>Cook</b> at your cart · 🧽 <b>Clean</b> to scrub it</li>
-       <li>🤏 Pinch with two fingers to zoom</li>`
-    : `<li>🚶 Walk with <kbd>WASD</kbd> or click the map (<kbd>Shift</kbd> = run)</li>
-       <li>🍳 Press <kbd>E</kbd> at your cart to cook · <kbd>C</kbd> to clean</li>
-       <li>🔍 Mouse wheel or +/− to zoom</li>`;
+    ? `<li>🕹️ Use the joystick in the bottom-left, or just tap where you want to go</li>
+       <li>🍳 Tap <b>Cook</b> at your cart to cook, and 🧽 <b>Clean</b> to scrub it</li>
+       <li>🤏 Pinch with two fingers to zoom in and out</li>`
+    : `<li>🚶 Walk with <kbd>WASD</kbd> or click where you want to go. Hold <kbd>Shift</kbd> to run</li>
+       <li>🍳 Press <kbd>E</kbd> at your cart to cook and <kbd>C</kbd> to clean it</li>
+       <li>🔍 Scroll your mouse wheel or use + and − to zoom</li>`;
 }

@@ -75,14 +75,14 @@ function makeShop(bid, type) {
 
 function rentStorefront(bid, type) {
   const b = World.buildings[bid];
-  if (!shopsUnlocked()) { toast(`Shops unlock in Chapter ${SHOPS_CHAPTER + 1}`, 'bad'); return; }
+  if (!shopsUnlocked()) { toast(`Shops open up in Chapter ${SHOPS_CHAPTER + 1}`, 'bad'); return; }
   if (shopAt(bid)) return;
   const owned = !!S.buildings[bid];
   if (!owned && !b.forRent) return;
   if (!owned && !spend(b.leasePerMin * LEASE_DEPOSIT_MIN)) return;
   const s = makeShop(bid, type);
   S.shops.push(s);
-  toast(`🏪 You opened ${s.name}! Now place a counter and shelves.`, 'good');
+  toast(`🏪 ${s.name} is yours! Next up: a counter and some shelves.`, 'good');
   openPanel('shop:' + s.id);
 }
 
@@ -94,7 +94,7 @@ function closeShop(s) {
   for (const w of workersFor('shop', s.id)) w.assign = null;
   S.shops = S.shops.filter(x => x !== s);
   addMoney(refund, false);
-  toast(`Shop closed. Furniture and stock sold back for ${fmtMoney(refund)}.`, 'info');
+  toast(`Shop closed. You got ${fmtMoney(refund)} back for the furniture and stock.`, 'info');
 }
 
 // ---------- Stock ----------
@@ -116,10 +116,10 @@ function orderStock(s, only, silent = false) {
     if (n < need) short = true;
   }
   if (!silent) {
-    if (got) toast(`📦 Stocked ${got} items`, 'good');
-    else if (short) toast('Not enough money to buy stock', 'bad');
-    else if (noShelf) toast('Place shelves for these products first (🛠️ Edit layout)', 'bad');
-    else toast('Shelves are already full', 'info');
+    if (got) toast(`📦 Put ${got} items on the shelves!`, 'good');
+    else if (short) toast("You can't afford more stock right now", 'bad');
+    else if (noShelf) toast('You need shelves for these first. Try 🛠️ Edit layout', 'bad');
+    else toast('Your shelves are already full', 'info');
   }
   return got;
 }
@@ -390,26 +390,26 @@ function drawShop(s) {
 PANELS.shops = function () {
   if (!shopsUnlocked()) {
     return {
-      title: '🏪 Shops', html: `<div class="card lock"><div class="big-emoji">🔒</div><b>Shops unlock in Chapter ${SHOPS_CHAPTER + 1}</b>
-      <p class="muted small">Grow your cart business first! Finish the goals in the top-left to move the story forward.</p></div>` };
+      title: '🏪 Shops', html: `<div class="card lock"><div class="big-emoji">🔒</div><b>Shops open up in Chapter ${SHOPS_CHAPTER + 1}</b>
+      <p class="muted small">Grow your cart business first! Finish the goals in the top-left to keep the story going.</p></div>` };
   }
-  let html = `<p class="muted">Rent a storefront, fill it with counters and shelves, stock products, and customers will walk in to buy. Shops are open when you or a cashier is there.</p>`;
+  let html = `<p class="muted">Rent an empty shop, fill it with counters and shelves, stock it up, and people will walk in and buy stuff. A shop is open when you or a cashier is there.</p>`;
   html += `<h3>Your shops (${S.shops.length})</h3>`;
-  if (!S.shops.length) html += `<p class="muted small">No shops yet — rent one below.</p>`;
+  if (!S.shops.length) html += `<p class="muted small">No shops yet. Rent one below!</p>`;
   for (const s of S.shops) {
     const T_ = SHOP_TYPES[s.type], b = shopBuilding(s);
     html += `<div class="card row clickable" data-act="open" data-key="shop:${s.id}"><div class="big-emoji">${T_.emoji}</div>
       <div class="grow"><b>${escapeHtml(s.name)}</b> <span class="stars">${stars(s.rating)}</span>
-      <div class="muted small">${s.owned ? 'Your building' : `Rent ${fmtMoney(b.leasePerMin)}/min`} · ${s.served} customers · earned ${fmtMoney(s.earned)}</div></div>
+      <div class="muted small">${s.owned ? 'In your own building' : `Rent ${fmtMoney(b.leasePerMin)}/min`} · ${s.served} customers · made ${fmtMoney(s.earned)}</div></div>
       <div class="tag ${shopOpen(s) ? 'green' : 'gray'}">${shopOpen(s) ? 'OPEN' : 'CLOSED'}</div></div>`;
   }
   const px = Game.player.x / TILE, py = Game.player.y / TILE;
   const free = World.buildings.filter(b => b.forRent && !shopAt(b.id)).sort((a, b) => dist(px, py, a.x, a.y) - dist(px, py, b.x, b.y)).slice(0, 8);
-  html += `<h3>Storefronts for rent nearby</h3><p class="muted small">Bigger shops fit more shelves but cost more rent. You also pay ${LEASE_DEPOSIT_MIN} minutes of rent up front.</p>`;
+  html += `<h3>Shops for rent near you</h3><p class="muted small">Bigger shops fit more shelves, but the rent is higher. You also pay ${LEASE_DEPOSIT_MIN} minutes of rent up front when you move in.</p>`;
   for (const b of free) {
-    html += `<div class="card row"><div class="grow"><b>${b.w}×${b.h} storefront</b> <span class="muted small">${Math.round(dist(px, py, b.x, b.y))} tiles away</span>
+    html += `<div class="card row"><div class="grow"><b>${b.w}×${b.h} shop</b> <span class="muted small">${Math.round(dist(px, py, b.x, b.y))} tiles away</span>
       <div class="muted small">${fmtMoney(b.leasePerMin)}/min · ${b.w * b.h - 1} spaces for furniture</div></div>
-      ${btn('🔎 View', 'bld-travel', { id: b.id }, 'ghost')}</div>`;
+      ${btn('🔎 Take a look', 'bld-travel', { id: b.id }, 'ghost')}</div>`;
   }
   return { title: '🏪 Shops', html };
 };
@@ -421,39 +421,39 @@ PANELS.shop = function (id) {
   const near = playerNearShop(s, 5), appeal = shopAppeal(s);
   const ws = workersFor('shop', s.id), counters = countFurn(s, 'counter');
   let html = '';
-  if (!counters || !countFurn(s, 'shelf')) html += `<div class="card warn"><span>👉 Your shop needs a <b>checkout counter</b> and <b>shelves</b>.</span>${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) : btn('🚀 Travel here', 'shop-travel', { id: s.id })}</div>`;
+  if (!counters || !countFurn(s, 'shelf')) html += `<div class="card warn"><span>👉 Your shop still needs a <b>checkout counter</b> and some <b>shelves</b>.</span>${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) : btn('🚀 Go there', 'shop-travel', { id: s.id })}</div>`;
   html += `<div class="card"><div class="row"><div class="big-emoji">${T_.emoji}</div><div class="grow"><b>${escapeHtml(s.name)}</b>
       <div class="stars">${stars(s.rating)} <span class="muted small">${s.rating.toFixed(1)}</span></div></div>
       <div class="tag ${shopOpen(s) ? 'green' : 'gray'}">${shopOpen(s) ? 'OPEN' : 'CLOSED'}</div></div>
     <div class="stat-grid">
-      <div><span>Customers</span><b>${s.served}</b></div><div><span>Earned</span><b>${fmtMoney(s.earned)}</b></div>
+      <div><span>Customers</span><b>${s.served}</b></div><div><span>Made</span><b>${fmtMoney(s.earned)}</b></div>
       <div><span>Inside now</span><b>${s._visitors.filter(v => v.state === 'inShop').length}/${shopMaxInside(s)}</b></div>
       <div><span>${s.owned ? 'Building' : 'Rent'}</span><b>${s.owned ? 'Yours' : fmtMoney(b.leasePerMin) + '/min'}</b></div></div>
     <div class="label-row"><span>Appeal</span><span>${Math.round(appeal)}%</span></div>${bar(appeal, appeal > 55 ? '#2a9d8f' : appeal > 30 ? '#e9c46a' : '#e63946')}
     <div class="label-row"><span>Dirt</span><span>${Math.round(s.dirt)}%</span></div>${bar(s.dirt, '#8b5e34')}
-    <div class="btn-row">${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) + (s.dirt > 5 ? btn('🧽 Clean', 'shop-clean', { id: s.id }) : '') : btn('🚀 Travel here', 'shop-travel', { id: s.id })}
+    <div class="btn-row">${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) + (s.dirt > 5 ? btn('🧽 Clean', 'shop-clean', { id: s.id }) : '') : btn('🚀 Go there', 'shop-travel', { id: s.id })}
       ${btn('✏️ Rename', 'shop-rename', { id: s.id }, 'ghost')}</div></div>`;
 
-  html += `<div class="card"><div class="row"><div class="grow"><b>Products</b><div class="muted small">Each shelf holds ${SHELF_CAP} of one product.${s.type === 'grocery' ? ' Grocery uses your farm storage first!' : ''}</div></div>
-    ${btn(`📦 Restock all (~${fmtMoney(orderCost(s))})`, 'shop-order', { id: s.id })}</div>`;
+  html += `<div class="card"><div class="row"><div class="grow"><b>Products</b><div class="muted small">Each shelf holds ${SHELF_CAP} of one thing.${s.type === 'grocery' ? ' Groceries come from your farm storage first!' : ''}</div></div>
+    ${btn(`📦 Restock everything (about ${fmtMoney(orderCost(s))})`, 'shop-order', { id: s.id })}</div>`;
   for (const p of T_.products) {
     const info = productInfo(p), cap = shelfCap(s, p);
     html += `<div class="row upg"><div class="big-emoji sm">${info.emoji}</div><div class="grow"><b>${info.name}</b> <span class="muted small">${s.stock[p]}/${cap}</span>
-        <div class="muted small">Costs you ${fmtMoney(info.cost)} · normal price ${fmtMoney(info.price)}</div>
-        ${cap ? bar(s.stock[p] / cap * 100, '#4cc9f0') : '<div class="muted small">⚠️ No shelf for this yet</div>'}</div>
+        <div class="muted small">Costs you ${fmtMoney(info.cost)} · usually sells for ${fmtMoney(info.price)}</div>
+        ${cap ? bar(s.stock[p] / cap * 100, '#4cc9f0') : '<div class="muted small">⚠️ No shelf for this one yet</div>'}</div>
       ${btn('−', 'shop-price', { id: s.id, p, d: -0.5 }, 'sq')}<div class="price sm">${fmtMoney(s.prices[p])}</div>${btn('+', 'shop-price', { id: s.id, p, d: 0.5 }, 'sq')}</div>`;
   }
   html += `</div>`;
 
-  html += `<div class="card"><b>Cashiers (${ws.length}/${counters})</b><p class="muted small">Each cashier needs a counter. You count as a cashier while you stand by the door.</p>`;
-  for (const w of ws) html += `<div class="row">${workerFace(w)}<div class="grow"><b>${escapeHtml(w.name)}</b> <span class="stars">${stars(w.stars)}</span> <span class="muted small">Lv ${w.level}</span></div>${btn('Remove', 'unassign', { w: w.id }, 'ghost')}</div>`;
+  html += `<div class="card"><b>Cashiers (${ws.length}/${counters})</b><p class="muted small">Every cashier needs their own counter. While you're standing by the door, you count as a cashier too.</p>`;
+  for (const w of ws) html += `<div class="row">${workerFace(w)}<div class="grow"><b>${escapeHtml(w.name)}</b> <span class="stars">${stars(w.stars)}</span> <span class="muted small">Level ${w.level}</span></div>${btn('Take off this job', 'unassign', { w: w.id }, 'ghost')}</div>`;
   const free = S.workers.filter(x => !x.assign);
   if (ws.length < Math.max(1, counters)) {
-    html += free.length ? free.map(x => `<div class="row">${workerFace(x)}<div class="grow">${escapeHtml(x.name)} <span class="stars">${stars(x.stars)}</span></div>${btn('Assign', 'assign', { w: x.id, type: 'shop', id: s.id })}</div>`).join('')
-      : `<p class="muted small">No free workers. ${btn('👷 Hire someone', 'open', { key: 'workers' }, 'ghost')}</p>`;
+    html += free.length ? free.map(x => `<div class="row">${workerFace(x)}<div class="grow">${escapeHtml(x.name)} <span class="stars">${stars(x.stars)}</span></div>${btn('Put to work', 'assign', { w: x.id, type: 'shop', id: s.id })}</div>`).join('')
+      : `<p class="muted small">Everyone's busy right now. ${btn('👷 Hire someone', 'open', { key: 'workers' }, 'ghost')}</p>`;
   }
-  html += `</div><div class="card"><div class="btn-row">${btn(s.owned ? '🚪 Close shop' : '🚪 End lease & close', 'shop-close', { id: s.id }, 'ghost danger')}</div>
-    <p class="muted small">Furniture and stock are sold back at a discount.</p></div>`;
+  html += `</div><div class="card"><div class="btn-row">${btn(s.owned ? '🚪 Close the shop' : '🚪 Move out and close', 'shop-close', { id: s.id }, 'ghost danger')}</div>
+    <p class="muted small">You'll get some money back for the furniture and stock, but not all of it.</p></div>`;
   return { title: `${T_.emoji} ${T_.name}`, html };
 };
 
@@ -465,14 +465,14 @@ PANELS.building = function (id) {
   const b = World.buildings[id];
   if (!b || !(b.forRent || S.buildings[id])) return _buildingPanel(id);
   const owned = !!S.buildings[id];
-  const r = owned ? _buildingPanel(id) : { title: '🏪 Storefront for rent', html: '' };
+  const r = owned ? _buildingPanel(id) : { title: '🏪 Shop for rent', html: '' };
   let html = r.html;
-  if (!owned) html += `<div class="card"><b>Empty ${b.w}×${b.h} storefront</b><div class="stat-grid">
-      <div><span>Rent</span><b>${fmtMoney(b.leasePerMin)}/min</b></div><div><span>Up front</span><b>${fmtMoney(b.leasePerMin * LEASE_DEPOSIT_MIN)}</b></div>
-      <div><span>Furniture spaces</span><b>${b.w * b.h - 1}</b></div><div><span>Floors</span><b>${b.floors}</b></div></div></div>`;
-  if (!shopsUnlocked()) html += `<div class="card lock">🔒 Shops unlock in <b>Chapter ${SHOPS_CHAPTER + 1}</b>. Keep growing your carts!</div>`;
+  if (!owned) html += `<div class="card"><b>Empty ${b.w}×${b.h} shop</b><div class="stat-grid">
+      <div><span>Rent</span><b>${fmtMoney(b.leasePerMin)}/min</b></div><div><span>To move in</span><b>${fmtMoney(b.leasePerMin * LEASE_DEPOSIT_MIN)}</b></div>
+      <div><span>Room for furniture</span><b>${b.w * b.h - 1}</b></div><div><span>Floors</span><b>${b.floors}</b></div></div></div>`;
+  if (!shopsUnlocked()) html += `<div class="card lock">🔒 Shops open up in <b>Chapter ${SHOPS_CHAPTER + 1}</b>. Keep growing your carts for now!</div>`;
   else {
-    html += `<div class="card"><b>${owned ? 'Open a shop in your building' : 'Rent it as a…'}</b>${owned ? '<p class="muted small">You stop getting rent from tenants while your shop is here.</p>' : ''}<div class="shop-types">`;
+    html += `<div class="card"><b>${owned ? 'Open a shop in your building' : 'What kind of shop?'}</b>${owned ? '<p class="muted small">Your tenants stop paying rent while your shop is in here.</p>' : ''}<div class="shop-types">`;
     for (const k in SHOP_TYPES) {
       const T_ = SHOP_TYPES[k];
       html += `<button class="cuisine-btn" data-act="shop-rent" data-id="${id}" data-type="${k}"><span>${T_.emoji}</span>${T_.name}<small>${T_.products.map(p => productInfo(p).emoji).join('')}</small></button>`;
@@ -484,7 +484,7 @@ PANELS.building = function (id) {
 
 // ---------- Layout editor ----------
 function openShopEditor(s) {
-  if (!playerNearShop(s, 5)) { toast('Walk to your shop first (or use 🚀 Travel)', 'bad'); return; }
+  if (!playerNearShop(s, 5)) { toast('Head to your shop first (or use 🚀 Go there)', 'bad'); return; }
   UI.editShop = s.id;
   UI.editTool = UI.editTool || 'counter';
   renderShopEditor();
@@ -510,7 +510,7 @@ function renderShopEditor() {
     grid += `<button class="ed-cell ${i === dc ? 'door' : ''} ${f ? 'full' : ''}" data-act="ed-cell" data-i="${i}" style="width:${size}px;height:${size}px">${label}</button>`;
   }
   const html = `<div class="mg-title">🛠️ ${T_.emoji} ${escapeHtml(s.name)}</div>
-    <div class="mg-sub">Pick something below, then tap an empty square to place it. You have ${fmtMoney(S.money)}.</div>
+    <div class="mg-sub">Pick something, then ${IS_TOUCH ? 'tap' : 'click'} an empty square to put it there. You've got ${fmtMoney(S.money)}.</div>
     <div class="ed-body"><div class="ed-side"><div class="ed-tools">${tools.map(([k, f]) => `<button class="ed-tool ${UI.editTool === k ? 'sel' : ''}" data-act="ed-tool" data-t="${k}"><span>${f.emoji}</span>${f.name}<small>${f.cost ? fmtMoney(f.cost) : 'refund 50%'}</small></button>`).join('')}</div>
       <div class="ed-foot"><div class="muted small">🧾 ${countFurn(s, 'counter')} counters · 🗄️ ${countFurn(s, 'shelf')} shelves · ✨ +${shopDecor(s)} appeal from decorations</div>
       <button class="btn big" data-act="ed-done">Done</button></div></div>
@@ -521,7 +521,7 @@ function renderShopEditor() {
 
 function placeFurniture(i) {
   const s = getShop(UI.editShop), b = shopBuilding(s);
-  if (i === doorCell(b)) { toast('Keep the doorway free!', 'bad'); return; }
+  if (i === doorCell(b)) { toast('Keep the doorway clear so people can get in!', 'bad'); return; }
   const tool = UI.editTool, cur = s.furniture[i];
   if (tool === 'erase') {
     if (!cur) return;
@@ -534,7 +534,7 @@ function placeFurniture(i) {
     }
     return;
   }
-  if (cur) { toast('That square is taken — use ❌ Remove first', 'bad'); return; }
+  if (cur) { toast("Something's already there. Use ❌ Remove first", 'bad'); return; }
   const [k, p] = tool.split(':');
   if (!spend(FURNITURE[k].cost)) return;
   s.furniture[i] = p ? { k, p } : { k };
@@ -548,18 +548,18 @@ Object.assign(ACTIONS, {
   'shop-order': d => orderStock(getShop(d.id)),
   'shop-price': d => { const s = getShop(d.id); s.prices[d.p] = clamp(Math.round((s.prices[d.p] + +d.d) * 2) / 2, 0.5, 999); },
   'shop-rename': d => {
-    const s = getShop(d.id), name = prompt('Name your shop:', s.name);
+    const s = getShop(d.id), name = prompt('What do you want to call your shop?', s.name);
     if (name && name.trim()) s.name = name.trim().slice(0, 28);
   },
   'shop-clean': d => {
     const s = getShop(d.id);
-    if (!playerNearShop(s, 5)) { toast('Walk to your shop first', 'bad'); return; }
-    if (s.dirt < 1) { toast('Already spotless!', 'info'); return; }
-    Minigame.start('scrub', { dirt: s.dirt, color: SHOP_TYPES[s.type].color }, () => { s.dirt = 0; S.stats.cleaned++; toast('Shop is sparkling clean ✨', 'good'); });
+    if (!playerNearShop(s, 5)) { toast('Head to your shop first', 'bad'); return; }
+    if (s.dirt < 1) { toast("It's already spotless!", 'info'); return; }
+    Minigame.start('scrub', { dirt: s.dirt, color: SHOP_TYPES[s.type].color }, () => { s.dirt = 0; S.stats.cleaned++; toast('Your shop is squeaky clean! ✨', 'good'); });
   },
   'shop-close': d => {
     const s = getShop(d.id);
-    if (confirm(`Close ${s.name}? Furniture and stock are sold back at a discount.`)) { closeShop(s); closePanel(); }
+    if (confirm(`Close ${s.name}? You'll get some money back for the furniture and stock, but not all of it.`)) { closeShop(s); closePanel(); }
   },
   'ed-tool': d => { UI.editTool = d.t; renderShopEditor(); },
   'ed-cell': d => { placeFurniture(+d.i); renderShopEditor(); },

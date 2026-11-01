@@ -334,7 +334,7 @@ function drawBuildingOverlay(b) {
   if (owned) {
     ctx.fillStyle = '#6c757d'; ctx.fillRect(px + 10, py + 6, 2, 18);
     ctx.fillStyle = '#2a9d8f'; ctx.beginPath(); ctx.moveTo(px + 12, py + 6); ctx.lineTo(px + 26, py + 11); ctx.lineTo(px + 12, py + 16); ctx.fill();
-    tag(px + w / 2, py + 14, 'YOURS +' + fmtMoney(b.rentPerMin) + '/min', '#2a9d8f');
+    tag(px + w / 2, py + 14, 'YOURS · +' + fmtMoney(b.rentPerMin) + '/min', '#2a9d8f');
   } else {
     tag(px + w / 2, py + 14, 'FOR SALE ' + fmtMoney(b.price), '#9b2226');
   }
