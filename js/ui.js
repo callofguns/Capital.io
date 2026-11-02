@@ -251,7 +251,8 @@ const PANELS = {
 
     html += `<div class="card"><div class="row"><div class="grow"><b>Price</b><div class="muted small">Most people charge ${fmtMoney(C.fair)}. Ingredients cost you about ${fmtMoney(mealCost(c))}.</div></div>
       ${btn('−', 'cart-price', { id: c.id, d: -0.5 }, 'sq')}<div class="price">${fmtMoney(c.price)}</div>${btn('+', 'cart-price', { id: c.id, d: 0.5 }, 'sq')}</div>
-      <p class="muted small">Go cheaper and more people stop by. Go pricier and you make more per meal.</p></div>`;
+      <p class="muted small">Go cheaper and more people stop by. Go pricier and you make more per meal.</p>
+      ${autoPriceRow('cart', c, workersFor('cart', c.id))}</div>`;
 
     html += `<div class="card"><b>What to do</b><div class="btn-row">
       ${near ? btn('🍳 Cook', 'cart-cook', { id: c.id }) + (c.dirt > 5 ? btn('🧽 Clean', 'cart-clean', { id: c.id }) : '') : btn('🚀 Go there', 'cart-travel', { id: c.id })}
@@ -631,9 +632,30 @@ function startCleaning(c) {
   Minigame.start('scrub', c, () => { c.dirt = 0; S.stats.cleaned++; toast('Squeaky clean! ✨', 'good'); });
 }
 
+// ---------- Auto-price (Level 3 workers change prices by themselves) ----------
+// autoPrice is on unless it's been set to false. Changing a price yourself turns it off.
+function autoPriceRow(kind, x, ws) {
+  const on = x.autoPrice !== false, pro = ws.some(w => w.level >= 3);
+  const desc = !pro ? 'Needs a Level 3 worker here. They raise prices when it\'s busy and lower them when it\'s quiet.'
+    : on ? 'Your worker changes prices based on how busy it is. Change a price yourself to turn this off.'
+    : "Off, so your prices stay exactly where you put them.";
+  return `<div class="row setting"><div class="grow"><b>🤖 Auto-price</b><div class="muted small">${desc}</div></div>
+    <button class="switch ${on ? 'on' : ''}" data-act="auto-price" data-kind="${kind}" data-id="${x.id}"><i></i></button></div>`;
+}
+function manualPrice(x, ws) {
+  if (x.autoPrice === false) return;
+  x.autoPrice = false;
+  if (ws.some(w => w.level >= 3)) toast("✋ Auto-price is off now, so your worker won't change your prices.", 'info');
+}
+
 const ACTIONS = {
   open: d => openPanel(d.key),
-  'cart-price': d => { const c = getCart(d.id); c.price = clamp(Math.round((c.price + +d.d) * 2) / 2, 0.5, 99); },
+  'cart-price': d => { const c = getCart(d.id); c.price = clamp(Math.round((c.price + +d.d) * 2) / 2, 0.5, 99); manualPrice(c, workersFor('cart', c.id)); },
+  'auto-price': d => {
+    const x = d.kind === 'shop' ? getShop(d.id) : getCart(d.id);
+    x.autoPrice = x.autoPrice === false;
+    toast(x.autoPrice ? '🤖 Auto-price is on. Your Level 3+ worker will set prices.' : "✋ Auto-price is off. Your prices won't change.", 'info');
+  },
   'cart-upgrade': d => {
     const c = getCart(d.id), lvl = c.upgrades[d.up];
     if (lvl >= UPGRADE_MAX) return;

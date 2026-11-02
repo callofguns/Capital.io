@@ -261,7 +261,7 @@ function updateCarts(dt) {
       restockCart(c, true);
     }
     // Level 3: adjusts the price every so often
-    if (w.level >= 3 && (c._priceCd || 0) <= Game.t) {
+    if (w.level >= 3 && c.autoPrice !== false && (c._priceCd || 0) <= Game.t) {
       c._priceCd = Game.t + 12;
       const C = CUISINES[c.cuisine];
       const q = c._queue.length / cartQueueMax(c);

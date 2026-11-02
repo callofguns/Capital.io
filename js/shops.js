@@ -239,7 +239,7 @@ function updateShops(dt) {
       s._orderCd = Game.t + 8;
       for (const p of SHOP_TYPES[s.type].products) if (shelfCap(s, p) && s.stock[p] < shelfCap(s, p) * 0.3) orderStock(s, p, true);
     }
-    if (lead && lead.level >= 3 && (s._priceCd || 0) <= Game.t) {
+    if (lead && lead.level >= 3 && s.autoPrice !== false && (s._priceCd || 0) <= Game.t) {
       s._priceCd = Game.t + 15;
       const busy = s._visitors.length / shopMaxInside(s);
       for (const p of SHOP_TYPES[s.type].products) {
@@ -451,7 +451,8 @@ PANELS.shop = function (id) {
       ${btn('✏️ Rename', 'shop-rename', { id: s.id }, 'ghost')}</div></div>`;
 
   html += `<div class="card"><div class="row"><div class="grow"><b>Products</b><div class="muted small">Each shelf holds ${SHELF_CAP} of one thing.${s.type === 'grocery' ? ' Groceries come from your farm storage first!' : ''}</div></div>
-    ${btn(`📦 Restock everything (about ${fmtMoney(orderCost(s))})`, 'shop-order', { id: s.id })}</div>`;
+    ${btn(`📦 Restock everything (about ${fmtMoney(orderCost(s))})`, 'shop-order', { id: s.id })}</div>
+    ${autoPriceRow('shop', s, workersFor('shop', s.id))}`;
   for (const p of T_.products) {
     const info = productInfo(p), cap = shelfCap(s, p);
     html += `<div class="row upg"><div class="big-emoji sm">${info.emoji}</div><div class="grow"><b>${info.name}</b> <span class="muted small">${s.stock[p]}/${cap}</span>
@@ -562,7 +563,7 @@ Object.assign(ACTIONS, {
   'shop-edit': d => openShopEditor(getShop(d.id)),
   'shop-travel': d => { const b = shopBuilding(getShop(d.id)); teleportPlayer(b.door.x, b.door.y); },
   'shop-order': d => orderStock(getShop(d.id)),
-  'shop-price': d => { const s = getShop(d.id); s.prices[d.p] = clamp(Math.round((s.prices[d.p] + +d.d) * 2) / 2, 0.5, 999); },
+  'shop-price': d => { const s = getShop(d.id); s.prices[d.p] = clamp(Math.round((s.prices[d.p] + +d.d) * 2) / 2, 0.5, 999); manualPrice(s, workersFor('shop', s.id)); },
   'shop-rename': d => {
     const s = getShop(d.id), name = prompt('What do you want to call your shop?', s.name);
     if (name && name.trim()) s.name = name.trim().slice(0, 28);
