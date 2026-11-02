@@ -117,7 +117,12 @@ function setupInput() {
     }
     if (UI.modalOpen || UI.mapOpen || !Game.running) return;
     Game.keys[k] = true;
-    if (e.shiftKey) Game.keys.shift = true;
+    // Shift switches between walking and running (tap it once, no need to hold)
+    if (e.key === 'Shift' && !e.repeat) {
+      Settings.alwaysRun = !Settings.alwaysRun; saveSettings();
+      toast(Settings.alwaysRun ? '🏃 Running' : '🚶 Walking', 'info');
+      if (UI.panelKey === 'help') renderPanel();
+    }
     if (k === 'e') startCooking(nearestOwnCart());
     if (k === 'c') startCleaning(nearestOwnCart());
     if (k === '+' || k === '=') zoomBy(1.15);
@@ -126,7 +131,6 @@ function setupInput() {
   });
   window.addEventListener('keyup', e => {
     Game.keys[e.key.toLowerCase()] = false;
-    if (!e.shiftKey) Game.keys.shift = false;
   });
   window.addEventListener('blur', () => { Game.keys = {}; });
 

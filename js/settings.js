@@ -9,7 +9,7 @@ const SETTINGS_DEFAULT = {
   night: true,       // darker nights with street lights
   floats: true,      // floating "+$9" money numbers
   tooltips: true,    // info when hovering over things
-  alwaysRun: false,  // run without holding Shift
+  alwaysRun: false,  // running instead of walking (tap Shift to switch)
   crowd: 'normal',   // how many people walk around: calm / normal / busy
   autosave: 15,      // seconds between autosaves
   joystick: true,    // on-screen joystick (phones & tablets)

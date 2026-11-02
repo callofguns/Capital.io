@@ -22,7 +22,7 @@ function blockedAt(px, py, r) {
 
 function updatePlayer(dt) {
   const p = Game.player, k = Game.keys;
-  const run = Settings.alwaysRun ? !k.shift : k.shift; // Shift flips walking/running
+  const run = Settings.alwaysRun; // tap Shift to switch between walking and running
   const speed = run ? 190 : 120;
   let vx = 0, vy = 0;
   if (!UI.modalOpen && !UI.mapOpen) {

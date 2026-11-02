@@ -25,7 +25,7 @@ Your game saves on its own, right in your browser. In **❓ Help → ⚙️ Sett
 
 | Key / action | What it does |
 |---|---|
-| `W A S D` or arrow keys | Walk (hold `Shift` to run) |
+| `W A S D` or arrow keys | Walk (tap `Shift` to switch between walking and running) |
 | Click the map | Walk there |
 | `E` | Cook at your cart (this starts the cooking game) |
 | `C` | Scrub your cart clean |

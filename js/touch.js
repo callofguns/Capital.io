@@ -121,7 +121,7 @@ function controlsList() {
     ? `<li>🕹️ Use the joystick in the bottom-left, or just tap where you want to go</li>
        <li>🍳 Tap <b>Cook</b> at your cart to cook, and 🧽 <b>Clean</b> to scrub it</li>
        <li>🤏 Pinch with two fingers to zoom in and out</li>`
-    : `<li>🚶 Walk with <kbd>WASD</kbd> or click where you want to go. Hold <kbd>Shift</kbd> to run</li>
+    : `<li>🚶 Walk with <kbd>WASD</kbd> or click where you want to go. Tap <kbd>Shift</kbd> to switch between walking and running</li>
        <li>🍳 Press <kbd>E</kbd> at your cart to cook and <kbd>C</kbd> to clean it</li>
        <li>🔍 Scroll your mouse wheel or use + and − to zoom</li>`;
 }

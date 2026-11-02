@@ -488,8 +488,8 @@ const PANELS = {
     const nw = netWorth(S);
     let html = `<div class="card"><div class="stat-grid">
       <div><span>Cash</span><b>${fmtMoney(S.money)}</b></div><div><span>Savings</span><b>${fmtMoney(S.bank.savings)}</b></div>
-      <div><span>Interest</span><b>${(BANK_RATE_PER_MIN * 100).toFixed(2)}%/min</b></div><div><span>Net worth</span><b>${fmtMoney(nw)}</b></div></div>
-      <p class="muted small">Money in savings grows a little every second, even when you're offline. You can't spend it until you take it back out, though.</p>
+      <div><span>Savings make you</span><b class="up">+${fmtMoney(S.bank.savings * BANK_RATE_PER_MIN)}/min</b></div><div><span>Net worth</span><b>${fmtMoney(nw)}</b></div></div>
+      <p class="muted small">Savings grow by ${(BANK_RATE_PER_MIN * 100).toFixed(2)}% every minute (that's about ${fmtMoney(S.bank.savings * (Math.pow(1 + BANK_RATE_PER_MIN, 60) - 1))} an hour right now), even when you're offline. The more you put in, the more you make. You can't spend it until you take it back out, though.</p>
       <div class="btn-row">${btn('Put in $100', 'bank-dep', { a: 100 })}${btn('Put it all in', 'bank-dep', { a: 'all' })}</div>
       <div class="btn-row">${btn('Take out $100', 'bank-wd', { a: 100 }, 'ghost')}${btn('Take it all out', 'bank-wd', { a: 'all' }, 'ghost')}</div></div>`;
     html += `<div class="card"><b>Your story so far</b><div class="stat-grid">
@@ -539,7 +539,7 @@ function settingsHtml() {
       ${document.fullscreenEnabled ? `<div class="row setting"><div class="grow"><b>Full screen</b><div class="muted small">Hides the browser bars so you get more screen</div></div>${btn(document.fullscreenElement ? 'Exit' : '⛶ Go', 'fullscreen', {}, 'ghost')}</div>` : ''}
     </div>
     <div class="card"><b>Gameplay</b>
-      ${IS_TOUCH ? '' : toggle('alwaysRun', 'Always run', "Run without holding Shift. Holding Shift makes you walk instead")}
+      ${IS_TOUCH ? '' : toggle('alwaysRun', 'Running', "Run instead of walk. Tapping Shift switches this too")}
       ${choice('crowd', 'Crowds', 'Fewer people can help if the game feels slow', [['calm', 'Calm'], ['normal', 'Normal'], ['busy', 'Busy']])}
       ${choice('autosave', 'Autosave', 'How often the game saves on its own', [[10, '10s'], [15, '15s'], [30, '30s'], [60, '1 min']])}
     </div>
