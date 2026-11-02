@@ -180,6 +180,8 @@ function updateActionBar() {
 
 // ---------- Panels ----------
 function openPanel(key) {
+  if (key === 'market') { openExchange(); return; } // the market has its own big window (exchange.js)
+  if (Ex.open) closeExchange();
   UI.panelKey = key;
   $('panel').classList.remove('hidden');
   renderPanel();
@@ -467,20 +469,6 @@ const PANELS = {
     }
     html += `</div><p><b>All together it's worth about</b> ${fmtMoney(total)}</p>`;
     return { title: '📦 Storage', html };
-  },
-
-  // ----- market -----
-  market() {
-    let html = `<p class="muted">The whole city shares one market, and prices change all the time. Buy when it's cheap and sell when it's high! Heads up: buying or selling a lot at once moves the price.</p>`;
-    for (const g in GOODS) {
-      const m = S.market[g], first = m.hist[0], ch = (m.price - first) / first * 100;
-      html += `<div class="card mkt"><div class="row"><div class="big-emoji sm">${GOODS[g].emoji}</div>
-        <div class="grow"><b>${GOODS[g].name}</b> <span class="${ch >= 0 ? 'up' : 'down'} small">${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch).toFixed(1)}%</span>
-        <div class="muted small">Buy ${fmtMoney(buyPrice(g))} · Sell ${fmtMoney(sellPrice(g))} · You have ${Math.floor(S.inventory[g])}</div></div>
-        ${sparkline(m.hist.concat([m.price]), 80, 26, ch >= 0 ? '#2a9d8f' : '#e63946')}</div>
-        <div class="btn-row">${btn('Buy 10', 'mkt-buy', { g, n: 10 }, 'ghost')}${btn('Buy 50', 'mkt-buy', { g, n: 50 }, 'ghost')}${btn('Sell 10', 'mkt-sell', { g, n: 10 }, 'ghost', S.inventory[g] < 1)}${btn('Sell all', 'mkt-sell', { g, n: 'all' }, 'ghost', S.inventory[g] < 1)}</div></div>`;
-    }
-    return { title: '📈 Market', html };
   },
 
   // ----- bank -----

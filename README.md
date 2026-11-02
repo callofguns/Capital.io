@@ -75,7 +75,7 @@ Click the goal box in the top-left whenever you want to read the current chapter
 - **Workers** rated from 1 to 5 stars. You pay them per job, and they learn new skills as they level up: buying ingredients, setting prices, cleaning, and working faster.
 - **Land** out in the countryside. Turn it into a **farm** (6 crops) or a **ranch** with chickens, pigs and cows that eat corn from a trough.
 - **Buildings** around the city that you can buy and rent out for money every minute.
-- **A market** where prices go up and down, plus **a bank** that pays interest.
+- **The City Exchange**, a big market window with price charts (line or candles), who's buying and selling, and a Buy / Sell box where you type how many. Plus **a bank** that pays interest and shows how much your savings make per minute.
 - **Day and night**, with busy lunch and dinner rushes.
 - **Offline progress**: your workers, farms, rent and savings keep going while you're away (for up to 8 hours).
 - **Goals** that walk you through the game and pay you cash rewards.
@@ -98,6 +98,7 @@ Everything is plain JavaScript (no frameworks), split into files by what they do
 | `js/ui.js` | The menus, story pop-ups, and what every button does |
 | `js/shops.js` | **Everything about shops**: renting, the layout editor, stock, customers inside, cashiers |
 | `js/bigmap.js` | The big city map that opens when you click the minimap |
+| `js/exchange.js` | The 📈 Market window: price charts, who's buying and selling, and the Buy / Sell box |
 | `js/touch.js` | Phone controls: joystick, pinch to zoom, swipe to close |
 | `js/settings.js` | The ⚙️ Settings and save backups |
 | `js/main.js` | The start screen, keyboard and mouse controls, and the main game loop |

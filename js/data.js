@@ -18,16 +18,16 @@ const OFFLINE_CAP_SEC = 8 * 3600;
 
 // ---------- Goods (things you can own, farm and trade) ----------
 const GOODS = {
-  wheat:   { name: 'Wheat',   emoji: '🌾', base: 1.0, grow: 45 },
-  corn:    { name: 'Corn',    emoji: '🌽', base: 1.0, grow: 60 },
-  potato:  { name: 'Potato',  emoji: '🥔', base: 0.8, grow: 50 },
-  lettuce: { name: 'Lettuce', emoji: '🥬', base: 1.0, grow: 40 },
-  tomato:  { name: 'Tomato',  emoji: '🍅', base: 1.2, grow: 75 },
-  rice:    { name: 'Rice',    emoji: '🍚', base: 1.2, grow: 80 },
-  eggs:    { name: 'Eggs',    emoji: '🥚', base: 1.5 },
-  meat:    { name: 'Meat',    emoji: '🥩', base: 3.0 },
-  cheese:  { name: 'Cheese',  emoji: '🧀', base: 2.5 },
-  fish:    { name: 'Fish',    emoji: '🐟', base: 4.0 },
+  wheat:   { name: 'Wheat', tick: 'WHT',   emoji: '🌾', base: 1.0, grow: 45 },
+  corn:    { name: 'Corn', tick: 'CRN',    emoji: '🌽', base: 1.0, grow: 60 },
+  potato:  { name: 'Potato', tick: 'POT',  emoji: '🥔', base: 0.8, grow: 50 },
+  lettuce: { name: 'Lettuce', tick: 'LET', emoji: '🥬', base: 1.0, grow: 40 },
+  tomato:  { name: 'Tomato', tick: 'TOM',  emoji: '🍅', base: 1.2, grow: 75 },
+  rice:    { name: 'Rice', tick: 'RCE',    emoji: '🍚', base: 1.2, grow: 80 },
+  eggs:    { name: 'Eggs', tick: 'EGG',    emoji: '🥚', base: 1.5 },
+  meat:    { name: 'Meat', tick: 'MEA',    emoji: '🥩', base: 3.0 },
+  cheese:  { name: 'Cheese', tick: 'CHS',  emoji: '🧀', base: 2.5 },
+  fish:    { name: 'Fish', tick: 'FSH',    emoji: '🐟', base: 4.0 },
 };
 const CROPS = Object.keys(GOODS).filter(g => GOODS[g].grow);
 const CROP_YIELD = 3;        // goods you get per harvested tile

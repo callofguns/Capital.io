@@ -37,6 +37,7 @@ function startGame(state, isNew) {
   buildWorldCanvas();
 
   migrateSave(S);
+  setupMarketData(S);
 
   // Rebuild the non-saved runtime bits
   for (const c of S.carts) { c._queue = []; c._cook = 0; }
@@ -109,6 +110,7 @@ function setupInput() {
     const k = e.key.toLowerCase();
     if (k === 'escape') {
       if (BigMap.open) closeBigMap();
+      else if (Ex.open) closeExchange();
       else if (Minigame.active) Minigame.cancel();
       else if (UI.modalOpen && !Minigame.active) closeModal();
       else if (UI.placement) endPlacement();
@@ -177,6 +179,7 @@ function setupInput() {
   // Buttons everywhere use data-act="..." (see ACTIONS in ui.js)
   document.addEventListener('click', e => {
     const open = e.target.closest('[data-open]');
+    if (open && open.dataset.open === 'market') { Ex.open ? closeExchange() : openExchange(); return; }
     if (open) { UI.panelKey === open.dataset.open ? closePanel() : openPanel(open.dataset.open); return; }
     const el = e.target.closest('[data-act]');
     if (el && !el.disabled) handleAction(el);
@@ -224,8 +227,8 @@ function update(dt) {
   updateCars(dt);
   updateFloats(dt);
 
-  if ((tm.market -= dt) <= 0) { tm.market = 2; marketTick(); }
-  if ((tm.hist -= dt) <= 0) { tm.hist = 15; marketHistoryTick(); }
+  if ((tm.market -= dt) <= 0) { tm.market = 2; marketTick(); exTick(); }
+  if ((tm.hist -= dt) <= 0) { tm.hist = 15; marketHistoryTick(); exCloseCandle(); }
   if ((tm.sec -= dt) <= 0) {
     tm.sec = 1;
     let rent = 0;
@@ -262,6 +265,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTouch();
   setupBigMap();
   setupPriceInputs();
+  setupExchange();
   applySettings();
   $('version-tag').textContent = GAME_VERSION;
   $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });

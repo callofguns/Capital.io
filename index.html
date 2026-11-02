@@ -60,6 +60,43 @@
     <canvas id="bm-canvas"></canvas>
     <div id="bm-legend"></div>
   </div>
+  <div id="exchange" class="hidden">
+    <div class="ex-head">
+      <h2>📈 City Exchange</h2>
+      <div id="ex-live"></div>
+      <button id="ex-close" title="Close">✕</button>
+    </div>
+    <div class="ex-main">
+      <div class="ex-side">
+        <div class="ex-label">GOODS</div>
+        <div id="ex-goods"></div>
+      </div>
+      <div class="ex-center">
+        <div class="ex-top">
+          <div id="ex-title"></div>
+          <div id="ex-price"></div>
+          <div id="ex-mode" class="ex-seg"><button data-ex="mode" data-m="line">LINE</button><button data-ex="mode" data-m="candles">CANDLES</button></div>
+        </div>
+        <div class="ex-mid">
+          <div class="ex-chart-box"><canvas id="ex-chart"></canvas></div>
+          <div class="ex-book-box"><div class="ex-label">WHO'S BUYING AND SELLING</div><div id="ex-book"></div></div>
+        </div>
+        <div id="ex-stats"></div>
+        <div class="ex-trade">
+          <div class="ex-qty-box">
+            <div class="ex-label">HOW MANY</div>
+            <div class="ex-qty-row">
+              <input id="ex-qty" type="number" inputmode="numeric" min="0" step="1" value="10" enterkeyhint="done">
+              <button data-ex="qty" data-n="1">1</button><button data-ex="qty" data-n="10">10</button><button data-ex="qty" data-n="100">100</button><button data-ex="qty" data-n="max">MAX</button>
+            </div>
+            <div id="ex-est" class="muted small"></div>
+          </div>
+          <button id="ex-buy" class="ex-bs buy" data-ex="buy"></button>
+          <button id="ex-sell" class="ex-bs sell" data-ex="sell"></button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="modal" class="hidden"><div id="modal-box"></div></div>
 
   <!-- Start screen -->
@@ -90,6 +127,7 @@
   <script src="js/ui.js"></script>
   <script src="js/shops.js"></script>
   <script src="js/bigmap.js"></script>
+  <script src="js/exchange.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

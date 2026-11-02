@@ -288,6 +288,95 @@ body.no-minimap #minimap { display: none; }
   #bm-legend { flex-wrap: nowrap; overflow-x: auto; font-size: 11px; }
 }
 
+/* ---------- Market window (City Exchange) ---------- */
+#exchange {
+  position: fixed; inset: 16px; z-index: 35; display: flex; flex-direction: column;
+  background: #14161d; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55); animation: pop .1s ease-out;
+  --ex-card: #1d2029; --ex-up: #52d69a; --ex-down: #ff6b6b;
+}
+#exchange .up { color: var(--ex-up); } #exchange .down { color: var(--ex-down); }
+.ex-head { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ex-head h2 { margin: 0; font: 700 19px 'Fredoka', sans-serif; flex: 1; letter-spacing: .3px; }
+#ex-live { font-size: 12px; font-weight: 800; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+#ex-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ex-up); box-shadow: 0 0 6px var(--ex-up); }
+#ex-live b { color: var(--text); }
+#ex-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; min-width: 36px; height: 34px; }
+.ex-main { flex: 1; min-height: 0; display: flex; gap: 12px; padding: 12px; }
+.ex-label { font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: .5px; margin-bottom: 6px; }
+.ex-side { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--ex-card); border-radius: 12px; padding: 10px; min-height: 0; }
+#ex-goods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; align-content: start; }
+.ex-good { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--text); font: 700 12px 'Nunito', sans-serif; cursor: pointer; }
+.ex-good b { font-size: 12px; } .ex-good .ex-p { font-size: 12px; color: var(--text); } .ex-good span:last-child { font-size: 11px; }
+.ex-good .ex-em { font-size: 26px; line-height: 1.2; }
+.ex-good.sel { border-color: #4cc9f0; background: rgba(76,201,240,0.1); }
+@media (hover: hover) { .ex-good:hover { background: rgba(255,255,255,0.07); } }
+.ex-center { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.ex-top { display: flex; align-items: center; gap: 14px; }
+#ex-title { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+#ex-title b { font: 700 20px 'Fredoka', sans-serif; }
+.ex-big { font-size: 34px; background: var(--ex-card); border-radius: 10px; padding: 2px 8px; }
+#ex-price { text-align: right; display: flex; flex-direction: column; }
+#ex-price b { font: 700 26px 'Fredoka', sans-serif; } #ex-price span { font-size: 12px; font-weight: 800; }
+.ex-seg { display: flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.ex-seg button { border: none; background: none; color: var(--muted); font: 800 12px 'Nunito', sans-serif; padding: 6px 14px; border-radius: 7px; cursor: pointer; }
+.ex-seg button.sel { background: #4cc9f0; color: #0d1b24; }
+.ex-mid { flex: 1; min-height: 220px; display: flex; gap: 10px; }
+.ex-chart-box { flex: 1; min-width: 0; background: var(--ex-card); border-radius: 12px; padding: 6px; display: flex; }
+#ex-chart { width: 100%; height: 100%; min-height: 200px; display: block; touch-action: pan-y; }
+.ex-book-box { width: 200px; flex-shrink: 0; background: var(--ex-card); border-radius: 12px; padding: 10px; overflow: hidden; }
+.ex-ob { position: relative; display: flex; justify-content: space-between; font: 12px ui-monospace, Menlo, monospace; padding: 1px 4px; }
+.ex-ob i { position: absolute; right: 0; top: 1px; bottom: 1px; border-radius: 2px; }
+.ex-ob span { position: relative; }
+.ex-ob.head { color: var(--muted); font: 800 10px 'Nunito', sans-serif; }
+.ex-ob.ask span:first-child { color: var(--ex-down); } .ex-ob.ask i { background: rgba(255,107,107,0.18); }
+.ex-ob.bid span:first-child { color: var(--ex-up); } .ex-ob.bid i { background: rgba(82,214,154,0.18); }
+.ex-spread { text-align: center; color: var(--gold); font: 11px ui-monospace, Menlo, monospace; padding: 3px 0; }
+#ex-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+#ex-stats div { background: var(--ex-card); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#ex-stats span { font-size: 11px; font-weight: 800; color: var(--muted); }
+#ex-stats b { font: 14px ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-trade { display: flex; gap: 10px; background: var(--ex-card); border-radius: 12px; padding: 12px; align-items: stretch; }
+.ex-qty-box { flex: 1; min-width: 0; }
+.ex-qty-row { display: flex; gap: 6px; margin-bottom: 6px; }
+#ex-qty { flex: 1; min-width: 60px; font: 700 16px ui-monospace, Menlo, monospace; text-align: center; padding: 8px; border-radius: 9px; border: 2px solid var(--line); background: rgba(0,0,0,0.3); color: var(--text); outline: none; }
+#ex-qty:focus { border-color: #4cc9f0; }
+.ex-qty-row button { min-width: 44px; border-radius: 9px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--text); font: 800 13px 'Nunito', sans-serif; cursor: pointer; }
+.ex-bs { width: 150px; border: none; border-radius: 12px; font: 700 20px 'Fredoka', sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: transform .06s; }
+.ex-bs small { font-size: 14px; font-weight: 600; }
+.ex-bs.buy { background: #1fd68a; color: #06301d; } .ex-bs.sell { background: #ff5c64; color: #3a070b; }
+.ex-bs:active { transform: scale(0.97); }
+.ex-bs:disabled { opacity: .4; cursor: not-allowed; }
+/* smaller screens: everything stacks and the window scrolls */
+@media (max-width: 1000px) {
+  .ex-main { flex-direction: column; overflow-y: auto; }
+  .ex-side { width: auto; }
+  #ex-goods { display: flex; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
+  .ex-good { min-width: 76px; }
+  .ex-center { flex: none; }
+  .ex-mid { flex: none; height: 300px; }
+  #ex-stats { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px), (max-height: 500px) {
+  #exchange { inset: 0; border-radius: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .ex-head h2 { font-size: 16px; }
+  .ex-main { padding: 8px; gap: 8px; }
+  .ex-top { flex-wrap: wrap; gap: 8px; }
+  #ex-title { flex-basis: 100%; }
+  #ex-price { text-align: left; flex: 1; }
+  .ex-mid { flex-direction: column; height: auto; }
+  .ex-chart-box { height: 240px; flex: none; }
+  .ex-book-box { width: auto; display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+  .ex-book-box .ex-label, .ex-book-box #ex-book { grid-column: 1 / -1; }
+  /* only the 4 closest prices on each side */
+  .ex-ob.ask:nth-child(-n+5), .ex-ob.bid:nth-child(n+15) { display: none; }
+  #ex-stats { grid-template-columns: repeat(2, 1fr); }
+  #ex-stats div:last-child { grid-column: 1 / -1; }
+  .ex-trade { flex-wrap: wrap; }
+  .ex-qty-box { flex-basis: 100%; }
+  .ex-bs { flex: 1; width: auto; padding: 12px 0; }
+}
+
 /* ---------- Title screen ---------- */
 #title-screen {
   position: fixed; inset: 0; display: flex; z-index: 50; overflow: auto; -webkit-overflow-scrolling: touch;
