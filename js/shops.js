@@ -13,11 +13,13 @@ const getShop = id => S.shops.find(s => s.id === +id);
 const shopBuilding = s => World.buildings[s.bid];
 const shopAt = bid => S.shops.find(s => s.bid === +bid) || null;
 const countFurn = (s, k) => s.furniture.filter(f => f && f.k === k).length;
-const shelfCap = (s, p) => s.furniture.filter(f => f && f.k === 'shelf' && f.p === p).length * SHELF_CAP;
+const shopUp = (s, k) => (s.upgrades && s.upgrades[k]) || 0;   // a shop upgrade's level
+const shelfSize = s => SHELF_CAP + shopUp(s, 'shelves') * 2;
+const shelfCap = (s, p) => s.furniture.filter(f => f && f.k === 'shelf' && f.p === p).length * shelfSize(s);
 const shopStockTotal = s => Object.values(s.stock).reduce((a, b) => a + b, 0);
 const shopDecor = s => Math.min(30, s.furniture.reduce((a, f) => a + (f && FURNITURE[f.k].appeal || 0), 0));
 const shopMaxInside = s => 3 + countFurn(s, 'counter') * 3;
-const shopNotice = s => 8 + shopDecor(s) * 0.1;
+const shopNotice = s => 8 + shopDecor(s) * 0.1 + shopUp(s, 'sign') * 1.2;
 const currentChapter = () => GOALS[S.goalIndex] ? GOALS[S.goalIndex].chapter : STORY.length - 1;
 const shopsUnlocked = () => currentChapter() >= SHOPS_CHAPTER || S.shops.length > 0;
 
@@ -33,8 +35,28 @@ function shopCashiers(s) {
   return list.slice(0, countFurn(s, 'counter'));
 }
 
+// ---------- Opening hours ----------
+// s.hours = [open, close] in hours. [0, 24] means always open. close < open means it stays open past midnight.
+const shopHours = s => s.hours || [0, 24];
+const alwaysOpen = s => { const [o, c] = shopHours(s); return c - o >= 24 || o === c; };
+function inShopHours(s, hour = Math.floor(S.clock % 1440 / 60)) {
+  const [o, c] = shopHours(s);
+  if (alwaysOpen(s)) return true;
+  return o < c ? hour >= o && hour < c : hour >= o || hour < c;
+}
+const openHoursPerDay = s => { let n = 0; for (let h = 0; h < 24; h++) if (inShopHours(s, h)) n++; return n; };
+const fmtHour = h => `${String(h % 24).padStart(2, '0')}:00`;
+
 function shopOpen(s) {
-  return countFurn(s, 'counter') > 0 && shopStockTotal(s) > 0 && shopCashiers(s).length > 0;
+  return inShopHours(s) && countFurn(s, 'counter') > 0 && shopStockTotal(s) > 0 && shopCashiers(s).length > 0;
+}
+// why a shop is closed (for the menu)
+function shopClosedWhy(s) {
+  if (!inShopHours(s)) return `opens at ${fmtHour(shopHours(s)[0])}`;
+  if (!countFurn(s, 'counter')) return 'needs a counter';
+  if (!shopStockTotal(s)) return 'nothing in stock';
+  if (!shopCashiers(s).length) return 'needs a cashier';
+  return '';
 }
 
 // Your shops of the same type within this many squares compete with each other
@@ -60,6 +82,7 @@ function shopAppealParts(s) {
   }
   if (n) parts.push({ label: 'Prices compared to normal', value: -(ratio / n - 1) * 60 });
   parts.push({ label: `Products in stock (${n})`, value: n * 2 });
+  if (shopUp(s, 'floors')) parts.push({ label: 'Nicer floors', value: shopUp(s, 'floors') * 2 });
   const c = sameShopsNearby(s), kinds = SHOP_PLURALS[s.type];
   parts.push({ label: c ? `${c} other ${c > 1 ? kinds : T_.name.toLowerCase()} of yours nearby` : `None of your other ${kinds} are nearby`, value: -SHOP_COMPETE_PENALTY * c, competition: c });
   return parts;
@@ -81,7 +104,7 @@ function makeShop(bid, type) {
   const s = {
     id: nextId(), bid: +bid, type, name: `${S.name}'s ${SHOP_TYPES[type].name}`,
     owned: !!S.buildings[bid], furniture: Array(b.w * b.h).fill(null),
-    stock: {}, prices: {}, dirt: 0, rating: 3.5, served: 0, earned: 0, lost: 0,
+    stock: {}, prices: {}, dirt: 0, rating: 3.5, served: 0, earned: 0, lost: 0, upgrades: {}, hours: [0, 24],
     _visitors: [], _regs: [],
   };
   for (const p of SHOP_TYPES[type].products) { s.stock[p] = 0; s.prices[p] = productInfo(p).price; }
@@ -195,7 +218,7 @@ function pickBasket(s, n) {
     }
   }
   if (!n.basket.length) { shopLeave(s, n, '😕'); return; }
-  n.phase = 'queue'; n.patience = rand(22, 32);
+  n.phase = 'queue'; n.patience = rand(22, 32) * (1 + shopUp(s, 'comfort') * 0.08);
 }
 
 function shopLeave(s, n, emoji, angry = false, bought = false) {
@@ -221,7 +244,7 @@ function checkout(s, n, cashier) {
   const w = cashier.w;
   const quality = w ? 0.55 + w.stars * 0.07 + w.level * 0.03 : 0.8;
   s.rating = s.rating * 0.93 + (1 + clamp(quality, 0, 1) * 4) * 0.07;
-  s.dirt = Math.min(100, s.dirt + 1.2);
+  s.dirt = Math.min(100, s.dirt + 1.2 * (1 - shopUp(s, 'hygiene') * 0.07));
   if (w) { addMoney(-w.wage); w.earned += w.wage; giveXp(w, 1); }
   const d = shopBuilding(s).door;
   floatText(d.x * TILE + 16, d.y * TILE - 8, '+' + fmtMoney(total), '#7CFC9A');
@@ -294,7 +317,7 @@ function updateShops(dt) {
         const c = cellPos(b, counters[i]);
         reg.n.tx = c.x; reg.n.ty = c.y + 20;
         const w = cashiers[i].w;
-        const time = w ? 2.6 * (1.3 - w.stars * 0.07) * (w.level >= 5 ? 0.8 : 1) : 1.8;
+        const time = (w ? 2.6 * (1.3 - w.stars * 0.07) * (w.level >= 5 ? 0.8 : 1) : 1.8) * (1 - shopUp(s, 'register') * 0.06);
         reg.t += dt / time;
         if (reg.t >= 1) { const n = reg.n; reg.n = null; checkout(s, n, cashiers[i]); }
       }
@@ -316,7 +339,7 @@ function shopsOffline(secs, rep) {
     const prods = SHOP_TYPES[s.type].products.filter(p => shelfCap(s, p) > 0);
     if (!regs || !prods.length) continue;
     const lead = ws.reduce((a, w) => (!a || w.level > a.level ? w : a), null);
-    const customers = Math.floor(secs * Math.min(regs / 2.6, shopAppeal(s) / 100 * 0.08) * 0.55);
+    const customers = Math.floor(secs * Math.min(regs / (2.6 * (1 - shopUp(s, 'register') * 0.06)), shopAppeal(s) / 100 * 0.08) * 0.55 * openHoursPerDay(s) / 24);
     let items = customers * 1.3;
     const avgPrice = prods.reduce((a, p) => a + s.prices[p], 0) / prods.length;
     const avgCost = prods.reduce((a, p) => a + productInfo(p).cost, 0) / prods.length;
@@ -439,7 +462,8 @@ PANELS.shop = function (id) {
   if (!counters || !countFurn(s, 'shelf')) html += `<div class="card warn"><span>👉 Your shop still needs a <b>checkout counter</b> and some <b>shelves</b>.</span>${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) : btn('🚀 Go there', 'shop-travel', { id: s.id })}</div>`;
   html += `<div class="card"><div class="row"><div class="big-emoji">${T_.emoji}</div><div class="grow"><b>${escapeHtml(s.name)}</b>
       <div class="stars">${stars(s.rating)} <span class="muted small">${s.rating.toFixed(1)}</span></div></div>
-      <div class="tag ${shopOpen(s) ? 'green' : 'gray'}">${shopOpen(s) ? 'OPEN' : 'CLOSED'}</div></div>
+      <div class="tag ${shopOpen(s) ? 'green' : 'gray'}" title="${shopClosedWhy(s)}">${shopOpen(s) ? 'OPEN' : 'CLOSED'}</div></div>
+    ${!shopOpen(s) && shopClosedWhy(s) ? `<p class="muted small">Closed right now: ${shopClosedWhy(s)}.</p>` : ''}
     <div class="stat-grid">
       <div><span>Customers</span><b>${s.served}</b></div><div><span>Made</span><b>${fmtMoney(s.earned)}</b></div>
       <div><span>Inside now</span><b>${s._visitors.filter(v => v.state === 'inShop').length}/${shopMaxInside(s)}</b></div>
@@ -450,7 +474,7 @@ PANELS.shop = function (id) {
     <div class="btn-row">${near ? btn('🛠️ Edit layout', 'shop-edit', { id: s.id }) + (s.dirt > 5 ? btn('🧽 Clean', 'shop-clean', { id: s.id }) : '') : btn('🚀 Go there', 'shop-travel', { id: s.id })}
       ${btn('✏️ Rename', 'shop-rename', { id: s.id }, 'ghost')}</div></div>`;
 
-  html += `<div class="card"><div class="row"><div class="grow"><b>Products</b><div class="muted small">Each shelf holds ${SHELF_CAP} of one thing.${s.type === 'grocery' ? ' Groceries come from your farm storage first!' : ''}</div></div>
+  html += `<div class="card"><div class="row"><div class="grow"><b>Products</b><div class="muted small">Each shelf holds ${shelfSize(s)} of one thing.${s.type === 'grocery' ? ' Groceries come from your farm storage first!' : ''}</div></div>
     ${btn(`📦 Restock everything (about ${fmtMoney(orderCost(s))})`, 'shop-order', { id: s.id })}</div>
     ${autoPriceRow('shop', s, workersFor('shop', s.id))}`;
   for (const p of T_.products) {
@@ -469,7 +493,27 @@ PANELS.shop = function (id) {
     html += free.length ? free.map(x => `<div class="row">${workerFace(x)}<div class="grow">${escapeHtml(x.name)} <span class="stars">${stars(x.stars)}</span></div>${btn('Put to work', 'assign', { w: x.id, type: 'shop', id: s.id })}</div>`).join('')
       : `<p class="muted small">Everyone's busy right now. ${btn('👷 Hire someone', 'open', { key: 'workers' }, 'ghost')}</p>`;
   }
-  html += `</div><div class="card"><div class="btn-row">${btn(s.owned ? '🚪 Close the shop' : '🚪 Move out and close', 'shop-close', { id: s.id }, 'ghost danger')}</div>
+  html += `</div>`;
+
+  // opening hours
+  const [ho, hc] = shopHours(s), always = alwaysOpen(s);
+  html += `<div class="card"><b>🕘 Opening hours</b> <span class="muted small">${always ? 'Open all day and night' : `${fmtHour(ho)} to ${fmtHour(hc)} (${openHoursPerDay(s)} hours a day)`}</span>
+    <div class="hours-row"><div class="hours-grp"><span>Opens</span>${btn('−', 'shop-hours', { id: s.id, w: 0, d: -1 }, 'sq')}<b>${always ? '--:--' : fmtHour(ho)}</b>${btn('+', 'shop-hours', { id: s.id, w: 0, d: 1 }, 'sq')}</div>
+      <div class="hours-grp"><span>Closes</span>${btn('−', 'shop-hours', { id: s.id, w: 1, d: -1 }, 'sq')}<b>${always ? '--:--' : fmtHour(hc)}</b>${btn('+', 'shop-hours', { id: s.id, w: 1, d: 1 }, 'sq')}</div></div>
+    <div class="btn-row">${always ? btn('Set hours (08:00 to 20:00)', 'shop-hours', { id: s.id, set: '8-20' }, 'ghost') : btn('🌙 Open all day and night', 'shop-hours', { id: s.id, set: '0-24' }, 'ghost')}</div>
+    <p class="muted small">Customers can only come in while you're open. Fewer people are out late at night, and sales while you're away count only your open hours.</p></div>`;
+
+  // upgrades
+  html += `<div class="card"><b>Upgrades</b>`;
+  for (const k in SHOP_UPGRADES) {
+    const U = SHOP_UPGRADES[k], lvl = shopUp(s, k), max = lvl >= UPGRADE_MAX, cost = shopUpgradeCost(k, lvl);
+    html += `<div class="row upg"><div class="big-emoji sm">${U.icon}</div><div class="grow"><b>${U.name}</b> <span class="muted small">Level ${lvl}/${UPGRADE_MAX}</span><div class="muted small">${U.desc}</div>
+      <div class="pips">${Array.from({ length: UPGRADE_MAX }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div></div>
+      ${max ? '<span class="tag green">MAX</span>' : btn(fmtMoney(cost), 'shop-upgrade', { id: s.id, up: k }, '', S.money < cost)}</div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="card"><div class="btn-row">${btn(s.owned ? '🚪 Close the shop' : '🚪 Move out and close', 'shop-close', { id: s.id }, 'ghost danger')}</div>
     <p class="muted small">You'll get some money back for the furniture and stock, but not all of it.</p></div>`;
   return { title: `${T_.emoji} ${T_.name}`, html };
 };
@@ -563,6 +607,22 @@ Object.assign(ACTIONS, {
   'shop-edit': d => openShopEditor(getShop(d.id)),
   'shop-travel': d => { const b = shopBuilding(getShop(d.id)); teleportPlayer(b.door.x, b.door.y); },
   'shop-order': d => orderStock(getShop(d.id)),
+  'shop-upgrade': d => {
+    const s = getShop(d.id), lvl = shopUp(s, d.up);
+    if (lvl >= UPGRADE_MAX) return;
+    if (spend(shopUpgradeCost(d.up, lvl))) {
+      s.upgrades = s.upgrades || {}; s.upgrades[d.up] = lvl + 1;
+      toast(`${SHOP_UPGRADES[d.up].icon} ${SHOP_UPGRADES[d.up].name} is now level ${lvl + 1}!`, 'good');
+    }
+  },
+  'shop-hours': d => {
+    const s = getShop(d.id);
+    if (d.set) { s.hours = d.set.split('-').map(Number); return; }
+    let h = alwaysOpen(s) ? [8, 20] : shopHours(s).slice();
+    h[+d.w] = (h[+d.w] + +d.d + 24) % 24;
+    if (h[0] === h[1]) h[+d.w] = (h[+d.w] + +d.d + 24) % 24; // open and close can't be the same hour
+    s.hours = h;
+  },
   'shop-price': d => { const s = getShop(d.id); setPrice('shop', s.id, d.p, s.prices[d.p] + +d.d); },
   'shop-rename': d => {
     const s = getShop(d.id), name = prompt('What do you want to call your shop?', s.name);

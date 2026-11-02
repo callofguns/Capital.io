@@ -119,6 +119,17 @@ const PRODUCTS = {
 };
 const FARM_MARKUP = 2.5;    // grocery shelf price = market base price x this
 const SHELF_CAP = 15;       // how many items one shelf holds
+
+// Shop upgrades (each goes up to UPGRADE_MAX, like cart upgrades)
+const SHOP_UPGRADES = {
+  sign:     { name: 'Bigger Sign',       icon: '🪧', desc: 'People notice your shop from further away',  base: 120 },
+  register: { name: 'Faster Checkout',   icon: '🧾', desc: 'Cashiers ring people up 6% faster every level', base: 150 },
+  shelves:  { name: 'Bigger Shelves',    icon: '🗄️', desc: 'Every shelf holds 2 more items',             base: 120 },
+  floors:   { name: 'Nicer Floors',      icon: '✨', desc: '+2 appeal every level',                      base: 140 },
+  hygiene:  { name: 'Cleaning Supplies', icon: '🧽', desc: 'Gets dirty more slowly',                     base: 90 },
+  comfort:  { name: 'Music & Comfort',   icon: '🎵', desc: 'Customers wait 8% longer before giving up',  base: 100 },
+};
+const shopUpgradeCost = (key, lvl) => Math.round(SHOP_UPGRADES[key].base * Math.pow(1.65, lvl));
 const LEASE_DEPOSIT_MIN = 15; // renting costs 15 minutes of rent up front
 const FURNITURE = {
   counter: { name: 'Checkout Counter', emoji: '🧾', cost: 150, desc: 'Where people pay. You need one for each cashier.' },
