@@ -257,6 +257,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupInput();
   setupTouch();
   setupBigMap();
+  setupPriceInputs();
   applySettings();
   $('version-tag').textContent = GAME_VERSION;
   $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });

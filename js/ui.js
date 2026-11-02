@@ -191,7 +191,7 @@ function closePanel() {
 }
 function renderPanel(force = true) {
   if (!UI.panelKey) return;
-  if (!force && (UI.pointerInPanel)) return;
+  if (!force && (UI.pointerInPanel || priceTyping())) return;
   const [type, id] = UI.panelKey.split(':');
   const fn = PANELS[type];
   if (!fn) return closePanel();
@@ -201,6 +201,49 @@ function renderPanel(force = true) {
   const body = $('panel-body'), st = body.scrollTop;
   body.innerHTML = r.html;
   body.scrollTop = st;
+}
+
+// ---------- Prices you can type in ----------
+// A little "$ [ 9.00 ]" box. Tap or click it and type a new price. The − and + buttons still work too.
+const PRICE_MAX = { cart: 99, shop: 999 };
+const priceBox = (kind, id, value, p = '') =>
+  `<label class="price-box"><span>$</span><input class="price-in" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off"
+    data-kind="${kind}" data-id="${id}" ${p ? `data-p="${p}"` : ''} value="${value.toFixed(2)}" aria-label="Price"></label>`;
+// true while you're typing in a price box (so the menu doesn't refresh under your fingers)
+const priceTyping = () => { const a = document.activeElement; return !!(a && a.classList && a.classList.contains('price-in')); };
+
+function setPrice(kind, id, p, value) {
+  const x = kind === 'shop' ? getShop(id) : getCart(id);
+  if (!x || !isFinite(value)) return false;
+  value = clamp(Math.round(value * 100) / 100, 0.5, PRICE_MAX[kind]);
+  if (kind === 'shop') x.prices[p] = value; else x.price = value;
+  manualPrice(x, workersFor(kind, x.id));
+  return true;
+}
+
+function setupPriceInputs() {
+  const body = $('panel-body');
+  // tapping the box empties it (the old price stays faintly in the background) so you can type straight away
+  body.addEventListener('focusin', e => {
+    const el = e.target;
+    if (!el.classList.contains('price-in') || el.dataset.old) return;
+    el.dataset.old = el.value; el.placeholder = el.value; el.value = '';
+  });
+  body.addEventListener('keydown', e => {
+    if (!e.target.classList.contains('price-in')) return;
+    if (e.key === 'Enter') e.target.blur();
+    if (e.key === 'Escape') { e.target.dataset.cancel = 1; e.target.blur(); }
+    e.stopPropagation();
+  });
+  body.addEventListener('focusout', e => {
+    const el = e.target;
+    if (!el.classList.contains('price-in')) return;
+    if (!el.dataset.cancel && el.value.trim() !== '') {
+      const v = parseFloat(el.value.replace(/[^0-9.,]/g, '').replace(',', '.'));
+      if (!setPrice(el.dataset.kind, el.dataset.id, el.dataset.p, v)) toast("That's not a price. Type a number like 4.50", 'bad');
+    }
+    setTimeout(() => { if (!priceTyping()) renderPanel(); updateHUD(); }, 0);
+  });
 }
 
 const bar = (v, color) => `<div class="bar"><div style="width:${clamp(v, 0, 100)}%;background:${color}"></div></div>`;
@@ -250,8 +293,8 @@ const PANELS = {
     </div>`;
 
     html += `<div class="card"><div class="row"><div class="grow"><b>Price</b><div class="muted small">Most people charge ${fmtMoney(C.fair)}. Ingredients cost you about ${fmtMoney(mealCost(c))}.</div></div>
-      ${btn('−', 'cart-price', { id: c.id, d: -0.5 }, 'sq')}<div class="price">${fmtMoney(c.price)}</div>${btn('+', 'cart-price', { id: c.id, d: 0.5 }, 'sq')}</div>
-      <p class="muted small">Go cheaper and more people stop by. Go pricier and you make more per meal.</p>
+      ${btn('−', 'cart-price', { id: c.id, d: -0.5 }, 'sq')}${priceBox('cart', c.id, c.price)}${btn('+', 'cart-price', { id: c.id, d: 0.5 }, 'sq')}</div>
+      <p class="muted small">Go cheaper and more people stop by. Go pricier and you make more per meal. ${IS_TOUCH ? 'Tap' : 'Click'} the price to type your own.</p>
       ${autoPriceRow('cart', c, workersFor('cart', c.id))}</div>`;
 
     html += `<div class="card"><b>What to do</b><div class="btn-row">
@@ -650,7 +693,7 @@ function manualPrice(x, ws) {
 
 const ACTIONS = {
   open: d => openPanel(d.key),
-  'cart-price': d => { const c = getCart(d.id); c.price = clamp(Math.round((c.price + +d.d) * 2) / 2, 0.5, 99); manualPrice(c, workersFor('cart', c.id)); },
+  'cart-price': d => { const c = getCart(d.id); setPrice('cart', c.id, null, c.price + +d.d); },
   'auto-price': d => {
     const x = d.kind === 'shop' ? getShop(d.id) : getCart(d.id);
     x.autoPrice = x.autoPrice === false;

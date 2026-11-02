@@ -221,6 +221,12 @@ ul.small-list li { font-size: 13px; padding: 6px 10px; }
 /* ---------- Shops ---------- */
 .card.lock { text-align: center; }
 .price.sm { font-size: 15px; min-width: 50px; }
+/* typed-in prices */
+.price-box { display: inline-flex; align-items: center; gap: 1px; margin: 0 4px; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--line); background: rgba(0,0,0,0.25); cursor: text; font: 700 18px 'Fredoka', sans-serif; color: var(--gold); }
+.price-box:focus-within { border-color: var(--gold); }
+.price-in { width: 58px; border: 0; outline: none; background: transparent; color: var(--gold); font: 700 18px 'Fredoka', sans-serif; text-align: center; padding: 2px 0; }
+.upg .price-box, .upg .price-in { font-size: 16px; }
+.upg .price-in { width: 50px; }
 .shop-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 10px; }
 #modal-box.editor { width: min(560px, calc(100vw - 16px)); padding: 18px 14px; }
 .ed-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }

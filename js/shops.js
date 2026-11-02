@@ -458,7 +458,7 @@ PANELS.shop = function (id) {
     html += `<div class="row upg"><div class="big-emoji sm">${info.emoji}</div><div class="grow"><b>${info.name}</b> <span class="muted small">${s.stock[p]}/${cap}</span>
         <div class="muted small">Costs you ${fmtMoney(info.cost)} · usually sells for ${fmtMoney(info.price)}</div>
         ${cap ? bar(s.stock[p] / cap * 100, '#4cc9f0') : '<div class="muted small">⚠️ No shelf for this one yet</div>'}</div>
-      ${btn('−', 'shop-price', { id: s.id, p, d: -0.5 }, 'sq')}<div class="price sm">${fmtMoney(s.prices[p])}</div>${btn('+', 'shop-price', { id: s.id, p, d: 0.5 }, 'sq')}</div>`;
+      ${btn('−', 'shop-price', { id: s.id, p, d: -0.5 }, 'sq')}${priceBox('shop', s.id, s.prices[p], p)}${btn('+', 'shop-price', { id: s.id, p, d: 0.5 }, 'sq')}</div>`;
   }
   html += `</div>`;
 
@@ -563,7 +563,7 @@ Object.assign(ACTIONS, {
   'shop-edit': d => openShopEditor(getShop(d.id)),
   'shop-travel': d => { const b = shopBuilding(getShop(d.id)); teleportPlayer(b.door.x, b.door.y); },
   'shop-order': d => orderStock(getShop(d.id)),
-  'shop-price': d => { const s = getShop(d.id); s.prices[d.p] = clamp(Math.round((s.prices[d.p] + +d.d) * 2) / 2, 0.5, 999); manualPrice(s, workersFor('shop', s.id)); },
+  'shop-price': d => { const s = getShop(d.id); setPrice('shop', s.id, d.p, s.prices[d.p] + +d.d); },
   'shop-rename': d => {
     const s = getShop(d.id), name = prompt('What do you want to call your shop?', s.name);
     if (name && name.trim()) s.name = name.trim().slice(0, 28);
