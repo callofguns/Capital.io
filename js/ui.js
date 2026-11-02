@@ -15,8 +15,9 @@ function toast(msg, kind = 'info') {
   el.className = 'toast ' + kind;
   el.textContent = msg;
   $('toasts').appendChild(el);
-  setTimeout(() => el.classList.add('out'), 3200);
-  setTimeout(() => el.remove(), 3700);
+  const ms = Math.max(3200, msg.length * 45); // long messages stay up longer so you can read them
+  setTimeout(() => el.classList.add('out'), ms);
+  setTimeout(() => el.remove(), ms + 500);
   while ($('toasts').children.length > 5) $('toasts').firstChild.remove();
 }
 

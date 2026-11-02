@@ -228,7 +228,7 @@ function drawCart(c) {
   // umbrella
   const ux = cx, uy = cy - 12, R = 15;
   for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = i % 2 ? '#ffffff' : C.color;
+    ctx.fillStyle = i % 2 ? (c.boss ? '#2b2d42' : '#ffffff') : C.color; // Vance's carts have dark stripes
     ctx.beginPath(); ctx.moveTo(ux, uy); ctx.arc(ux, uy, R, i * Math.PI / 4, (i + 1) * Math.PI / 4); ctx.closePath(); ctx.fill();
   }
   ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ux, uy, R, 0, Math.PI * 2); ctx.stroke();

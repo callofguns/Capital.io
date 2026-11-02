@@ -73,6 +73,7 @@ Click the goal box in the top-left whenever you want to read the current chapter
 - **City events**: rainy days, festival weekends in the park, ingredient shortages, and food critics who can make or break your reviews. Today's events show up next to the clock.
 - **7 food carts**: hot dog, burger, sushi, crêpe, fish & chips, pizza and burrito. Each one has its own cooking game (timing, combo, or hold and let go).
 - **Customers** who walk around the city and pick a cart based on price, how clean it is, reviews, and who else is nearby.
+- **Rivals that fight back** (from Chapter 2): rival carts cut their prices when you open near them, and Victor Vance opens Vance's carts (dark umbrellas) next to your best ones. Keep your cart way more appealing than theirs for a few hours to run them out of town.
 - **6 upgrades** for every cart (Grill, Recipe, Signage, Fridge, Hygiene and Queue Rope), each going up to level 10.
 - **Workers** rated from 1 to 5 stars. You pay them per job, and they learn new skills as they level up: buying ingredients, setting prices, cleaning, and working faster.
 - **Land** out in the countryside. Turn it into a **farm** (6 crops) or a **ranch** with chickens, pigs and cows that eat corn from a trough.
@@ -100,6 +101,7 @@ Everything is plain JavaScript (no frameworks), split into files by what they do
 | `js/ui.js` | The menus, story pop-ups, and what every button does |
 | `js/shops.js` | **Everything about shops**: renting, the layout editor, stock, customers inside, cashiers |
 | `js/events.js` | Daily orders and city events (rain, festivals, shortages, food critics) |
+| `js/rivals.js` | Rival carts that fight back, and the rival boss Victor Vance |
 | `js/bigmap.js` | The big city map that opens when you click the minimap |
 | `js/exchange.js` | The 📈 Market window: price charts, who's buying and selling, and the Buy / Sell box |
 | `js/touch.js` | Phone controls: joystick, pinch to zoom, swipe to close |
