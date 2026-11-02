@@ -46,6 +46,14 @@ function updateHUD() {
   const hh = Math.floor(mins / 60), mm = mins % 60;
   const icon = hh >= 6 && hh < 19 ? '☀️' : '🌙';
   $('clock').textContent = `${icon} Day ${day} · ${String(hh).padStart(2, '0')}:${String(mm - mm % 10).padStart(2, '0')}`;
+  // today's events next to the clock, and how many new orders are waiting
+  const news = S.events ? todayNews() : [], chip = $('news-chip');
+  const chipText = news.map(n => n.icon).join(' ');
+  if (chip.textContent !== chipText) chip.textContent = chipText;
+  chip.hidden = !news.length;
+  chip.title = news.map(n => n.short).join(', ');
+  const nOrders = activeOrders(), badge = $('orders-badge');
+  badge.hidden = !nOrders; if (badge.textContent !== String(nOrders)) badge.textContent = nOrders;
   $('money').classList.toggle('neg', S.money < 0);
   const g = GOALS[S.goalIndex];
   let html;

@@ -23,8 +23,9 @@
       <div class="money-box"><span id="money">$0</span><span id="pnl" class="pnl">+$0/min</span></div>
       <div id="goal-box" data-act="story" title="Show the story"></div>
     </div>
-    <div id="hud-center"><span id="clock"></span></div>
+    <div id="hud-center"><span id="clock"></span><button id="news-chip" data-open="orders" hidden></button></div>
     <div id="hud-right">
+      <button data-open="orders" title="Orders and today's news">📋<span>Orders</span><i id="orders-badge" hidden></i></button>
       <button data-open="carts" title="Food carts">🛒<span>Carts</span></button>
       <button data-open="shops" id="shops-btn" title="Shops">🏪<span>Shops</span></button>
       <button data-open="workers" title="Workers">👷<span>Workers</span></button>
@@ -126,6 +127,7 @@
   <script src="js/minigames.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/shops.js"></script>
+  <script src="js/events.js"></script>
   <script src="js/bigmap.js"></script>
   <script src="js/exchange.js"></script>
   <script src="js/main.js"></script>

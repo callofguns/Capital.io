@@ -115,7 +115,8 @@ function spawnNPC() {
   let spot;
   // more people walk around near your businesses
   const hubs = S.carts.map(c => ({ x: c.x, y: c.y })).concat(S.shops.map(sh => shopBuilding(sh).door));
-  if (hubs.length && Math.random() < 0.6) {
+  if (festivalOn() && Math.random() < 0.45) spot = randomPedTileNear(World.festival.x, World.festival.y, 9); // festival crowd
+  else if (hubs.length && Math.random() < 0.6) {
     const c = pick(hubs);
     spot = randomPedTileNear(c.x, c.y, 12);
   } else spot = randomPedTileNear(0, 0, null);
@@ -172,6 +173,8 @@ function leaveCart(n, angry, emoji) {
     if (i >= 0) c._queue.splice(i, 1);
     if (angry && !c.rival) { c.rating = c.rating * 0.95 + 1 * 0.05; c.lost++; }
   }
+  if (n.critic && c && !n.criticFed && !c.rival) { criticResult(c, null); n.life = 20; }
+  if (n.critic) { n.critic = false; n.bubble = null; n.life = Math.min(n.life, 20); }
   n.cart = null; n.arrived = false; n.state = 'walk';
   if (angry) { n.bubble = '😠'; n.bubbleT = 3; }
   else { n.bubble = emoji || (c ? CUISINES[c.cuisine].emoji : null); n.bubbleT = 3.5; n.hunger = 0; }
@@ -235,7 +238,7 @@ function updateNPC(n, dt) {
 
 function updateNPCs(dt) {
   const hour = (S.clock / 60) % 24;
-  const target = Math.min(160, Math.round((20 + 45 * demandAt(hour) + 4 * (S.carts.length + S.shops.length)) * CROWD_LEVELS[Settings.crowd]));
+  const target = Math.min(200, Math.round((20 + 45 * demandAt(hour) + 4 * (S.carts.length + S.shops.length)) * CROWD_LEVELS[Settings.crowd] * eventCrowdMult()));
   Game.timers.spawn -= dt;
   if (Game.timers.spawn <= 0) {
     Game.timers.spawn = 0.35;

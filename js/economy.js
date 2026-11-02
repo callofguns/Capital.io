@@ -50,7 +50,8 @@ const sellPrice = g => S.market[g].price * 0.97;
 function marketTick() {
   for (const g in GOODS) {
     const m = S.market[g], base = GOODS[g].base;
-    m.price += (base - m.price) * 0.03 + (Math.random() - 0.5) * base * 0.05;
+    const target = base * shortageMult(g); // shortages push the price way up
+    m.price += (target - m.price) * 0.03 + (Math.random() - 0.5) * base * 0.05;
     m.price = clamp(m.price, base * 0.4, base * 2.5);
   }
 }
@@ -162,7 +163,7 @@ function cartAppealParts(c) {
   parts.push({ label: `Reviews (${c.rating.toFixed(1)} stars)`, value: (c.rating - 3) * 6 });
   const n = sameFoodNearby(c.cuisine, c.x, c.y, c.id);
   parts.push({ label: n ? `${n} other ${food} cart${n > 1 ? 's' : ''} nearby` : `No other ${food} carts nearby`, value: -COMPETE_PENALTY * n, competition: n });
-  return parts;
+  return parts.concat(eventCartParts(c));
 }
 
 // How attractive a cart is to customers (3-97)
@@ -231,6 +232,8 @@ function serveCustomer(c, quality, worker) {
     giveXp(worker, 1);
   }
   floatText(c.x * TILE + 16, c.y * TILE - 8, '+' + fmtMoney(total), quality > 0.85 ? '#ffd166' : '#7CFC9A');
+  if (npc.critic) { npc.criticFed = true; criticResult(c, quality); }
+  orderProgress('cart', c.cuisine, 1);
   leaveCart(npc, false);
   return true;
 }

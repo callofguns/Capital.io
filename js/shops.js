@@ -19,7 +19,7 @@ const shelfCap = (s, p) => s.furniture.filter(f => f && f.k === 'shelf' && f.p =
 const shopStockTotal = s => Object.values(s.stock).reduce((a, b) => a + b, 0);
 const shopDecor = s => Math.min(30, s.furniture.reduce((a, f) => a + (f && FURNITURE[f.k].appeal || 0), 0));
 const shopMaxInside = s => 3 + countFurn(s, 'counter') * 3;
-const shopNotice = s => 8 + shopDecor(s) * 0.1 + shopUp(s, 'sign') * 1.2;
+const shopNotice = s => (8 + shopDecor(s) * 0.1 + shopUp(s, 'sign') * 1.2) * (isRaining() ? 1.3 : 1);
 const currentChapter = () => GOALS[S.goalIndex] ? GOALS[S.goalIndex].chapter : STORY.length - 1;
 const shopsUnlocked = () => currentChapter() >= SHOPS_CHAPTER || S.shops.length > 0;
 
@@ -83,6 +83,7 @@ function shopAppealParts(s) {
   if (n) parts.push({ label: 'Prices compared to normal', value: -(ratio / n - 1) * 60 });
   parts.push({ label: `Products in stock (${n})`, value: n * 2 });
   if (shopUp(s, 'floors')) parts.push({ label: 'Nicer floors', value: shopUp(s, 'floors') * 2 });
+  parts.push(...eventShopParts());
   const c = sameShopsNearby(s), kinds = SHOP_PLURALS[s.type];
   parts.push({ label: c ? `${c} other ${c > 1 ? kinds : T_.name.toLowerCase()} of yours nearby` : `None of your other ${kinds} are nearby`, value: -SHOP_COMPETE_PENALTY * c, competition: c });
   return parts;
@@ -237,7 +238,7 @@ function shopLeave(s, n, emoji, angry = false, bought = false) {
 
 function checkout(s, n, cashier) {
   let total = 0;
-  for (const it of n.basket) total += it.q * it.price;
+  for (const it of n.basket) { total += it.q * it.price; orderProgress('shop', it.p, it.q); }
   addMoney(total);
   s.earned += total; s.served++;
   S.stats.shopServed++; S.stats.shopEarned += total;

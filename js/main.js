@@ -38,6 +38,7 @@ function startGame(state, isNew) {
 
   migrateSave(S);
   setupMarketData(S);
+  setupEvents(S);
 
   // Rebuild the non-saved runtime bits
   for (const c of S.carts) { c._queue = []; c._cook = 0; }
@@ -231,6 +232,7 @@ function update(dt) {
   if ((tm.hist -= dt) <= 0) { tm.hist = 15; marketHistoryTick(); exCloseCandle(); }
   if ((tm.sec -= dt) <= 0) {
     tm.sec = 1;
+    eventsTick();
     let rent = 0;
     for (const id in S.buildings) if (!shopAt(id)) rent += World.buildings[id].rentPerMin / 60;
     if (rent) addMoney(rent);

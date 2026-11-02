@@ -68,7 +68,9 @@ Click the goal box in the top-left whenever you want to read the current chapter
 
 ## What's in the game
 
-- **Shops** (from Chapter 3): rent a shop and turn it into a coffee shop, bakery, grocery store, flower shop or gift shop. Set it up with counters, shelves, plants and tables, stock it, and pick your prices. Customers walk in, look around and pay at the counter. Stand next to your shop and the roof disappears so you can watch them. Grocery stores can even sell food from your own farms.
+- **Shops** (from Chapter 3): rent a shop and turn it into a coffee shop, bakery, grocery store, flower shop or gift shop. Set it up with counters, shelves, plants and tables, stock it, and pick your prices. Customers walk in, look around and pay at the counter. Stand next to your shop and the roof disappears so you can watch them. Grocery stores can even sell food from your own farms. Shops have their own upgrades (bigger sign, faster checkout, bigger shelves, nicer floors and more) and opening hours you choose.
+- **📋 Daily orders**: every morning a few customers want a lot of food at once (like "15 burgers by 18:00"). Accept an order, sell that many in time, and get a bonus.
+- **City events**: rainy days, festival weekends in the park, ingredient shortages, and food critics who can make or break your reviews. Today's events show up next to the clock.
 - **7 food carts**: hot dog, burger, sushi, crêpe, fish & chips, pizza and burrito. Each one has its own cooking game (timing, combo, or hold and let go).
 - **Customers** who walk around the city and pick a cart based on price, how clean it is, reviews, and who else is nearby.
 - **6 upgrades** for every cart (Grill, Recipe, Signage, Fridge, Hygiene and Queue Rope), each going up to level 10.
@@ -97,6 +99,7 @@ Everything is plain JavaScript (no frameworks), split into files by what they do
 | `js/minigames.js` | The cooking games and the scrubbing game |
 | `js/ui.js` | The menus, story pop-ups, and what every button does |
 | `js/shops.js` | **Everything about shops**: renting, the layout editor, stock, customers inside, cashiers |
+| `js/events.js` | Daily orders and city events (rain, festivals, shortages, food critics) |
 | `js/bigmap.js` | The big city map that opens when you click the minimap |
 | `js/exchange.js` | The 📈 Market window: price charts, who's buying and selling, and the Buy / Sell box |
 | `js/touch.js` | Phone controls: joystick, pinch to zoom, swipe to close |

@@ -36,7 +36,7 @@ function generateWorld(seed) {
   const N = MAP_W * MAP_H;
   Object.assign(World, {
     seed, tiles: new Uint8Array(N), plotAt: new Int16Array(N).fill(-1), buildingAt: new Int16Array(N).fill(-1),
-    buildings: [], plots: [], trees: [], rivals: [], fountains: [], pedTiles: [], lanes: [], lamps: [],
+    buildings: [], plots: [], trees: [], rivals: [], fountains: [], parks: [], pedTiles: [], lanes: [], lamps: [],
   });
   const set = (x, y, t) => { if (inMap(x, y)) World.tiles[tIdx(x, y)] = t; };
 
@@ -102,6 +102,7 @@ function generateWorld(seed) {
       if (kind === 'buildings') {
         for (const [rx, ry, w, h] of P(layouts)) addBuilding(ix + rx, iy + ry, w, h);
       } else if (kind === 'park') {
+        World.parks.push({ x: ix + 4, y: iy + 4 });
         for (let yy = 0; yy < 8; yy++) for (let xx = 0; xx < 8; xx++)
           if (xx === 3 || xx === 4 || yy === 3 || yy === 4) set(ix + xx, iy + yy, T.PATH);
         if (rng() < 0.4) { // little pond in one corner

@@ -408,6 +408,8 @@ function render() {
     ctx.globalAlpha = 1;
   }
 
+  drawFestival();
+
   // Everything that stands up is sorted by y so things overlap correctly
   const list = [];
   for (const c of allCarts()) if (onScreen(c.x * TILE, c.y * TILE)) list.push({ y: c.y * TILE + 20, f: () => drawCart(c) });
@@ -452,6 +454,8 @@ function render() {
     light(p.x, p.y, 60);
     ctx.drawImage(lightCanvas, 0, 0, viewW * dpr, viewH * dpr);
   }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawRain(viewW, viewH);
 }
 
 function drawPlayer(p) {
