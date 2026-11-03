@@ -136,7 +136,7 @@ function closeExchange() {
 
 // ---------- Buying and selling ----------
 const exQty = () => Math.max(0, Math.floor(+$('ex-qty').value || 0));
-const exMaxQty = () => Math.max(0, Math.floor(S.money / buyPrice(Ex.g)));
+const exMaxQty = () => marketMaxBuy(Ex.g);
 
 function exTrade(side) {
   const g = Ex.g, n = exQty();
@@ -201,7 +201,8 @@ function exRender(full = false) {
   $('ex-buy').innerHTML = `BUY<small>@ ${exMoney(buyPrice(g))}</small>`;
   $('ex-sell').innerHTML = `SELL<small>@ ${exMoney(sellPrice(g))}</small>`;
   $('ex-sell').disabled = own < 1;
-  $('ex-est').innerHTML = `Buy ≈ <b>${fmtMoney(buyPrice(g) * q)}</b> · Sell ≈ <b>${fmtMoney(sellPrice(g) * Math.min(q, own))}</b> · Cash <b>${fmtMoney(S.money)}</b>`;
+  // real totals: big orders move the price, so they cost a bit more (or pay a bit less) per item
+  $('ex-est').innerHTML = `Buy ≈ <b>${fmtMoney(marketQuote(g, q, 'buy').total)}</b> · Sell ≈ <b>${fmtMoney(marketQuote(g, Math.min(q, own), 'sell').total)}</b> · Cash <b>${fmtMoney(S.money)}</b>`;
 
   if (full) exSizeChart();
   exDrawChart();

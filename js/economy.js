@@ -64,28 +64,46 @@ function marketHistoryTick() {
   }
 }
 
+// Big trades move the price: every unit you buy pushes it up a little, every unit you sell pulls it down.
+// You pay (or get) the AVERAGE price across that move, not the starting price. Otherwise buying a lot
+// and selling it right back would make free money.
+const MARKET_IMPACT = 0.0015; // price change per unit, as a share of the normal price
+
+// What a trade of n units would cost / pay, and where the price ends up
+function marketQuote(g, n, side) {
+  const m = S.market[g], base = GOODS[g].base, start = m.price;
+  const end = side === 'buy' ? Math.min(base * 2.5, start + base * MARKET_IMPACT * n) : Math.max(base * 0.4, start - base * MARKET_IMPACT * n);
+  const avg = (start + end) / 2;
+  return { total: n * avg * (side === 'buy' ? 1.03 : 0.97), end };
+}
+
+// The most units you can afford right now
+function marketMaxBuy(g) {
+  let lo = 0, hi = Math.max(1, Math.ceil(S.money / (S.market[g].price * 1.03)) + 1);
+  while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (marketQuote(g, mid, 'buy').total <= S.money + 1e-9) lo = mid; else hi = mid - 1; }
+  return lo;
+}
+
 function marketBuy(g, n, silent = false) {
   if (n <= 0) return 0;
-  const cost = buyPrice(g) * n;
-  if (S.money < cost) {
-    n = Math.floor(S.money / buyPrice(g));
-    if (n <= 0) { if (!silent) toast("You don't have enough money for that", 'bad'); return 0; }
-  }
-  addMoney(-buyPrice(g) * n, true);
+  n = Math.min(n, marketMaxBuy(g));
+  if (n <= 0) { if (!silent) toast("You don't have enough money for that", 'bad'); return 0; }
+  const q = marketQuote(g, n, 'buy');
+  addMoney(-q.total, true);
   S.inventory[g] += n;
-  S.market[g].price = Math.min(GOODS[g].base * 2.5, S.market[g].price + GOODS[g].base * 0.0015 * n);
+  S.market[g].price = q.end;
   return n;
 }
 
 function marketSell(g, n) {
   n = Math.min(n, Math.floor(S.inventory[g]));
   if (n <= 0) { toast(`You don't have any ${GOODS[g].name.toLowerCase()}`, 'bad'); return 0; }
-  const earned = sellPrice(g) * n;
+  const q = marketQuote(g, n, 'sell');
   S.inventory[g] -= n;
-  addMoney(earned, true);
-  S.market[g].price = Math.max(GOODS[g].base * 0.4, S.market[g].price - GOODS[g].base * 0.0015 * n);
+  addMoney(q.total, true);
+  S.market[g].price = q.end;
   S.stats.marketSold += n;
-  toast(`Sold ${n} ${GOODS[g].emoji} for ${fmtMoney(earned)}!`, 'good');
+  toast(`Sold ${n} ${GOODS[g].emoji} for ${fmtMoney(q.total)}!`, 'good');
   return n;
 }
 
