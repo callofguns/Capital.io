@@ -148,6 +148,7 @@ function exTrade(side) {
     const sold = marketSell(g, n);
     if (sold) exTraded(g, sold);
   }
+  playSound('coin', { vol: 0.8 });
   updateHUD();
   exRender();
 }

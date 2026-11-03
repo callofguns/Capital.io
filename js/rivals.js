@@ -138,6 +138,7 @@ function bossCartBeaten(b, r) {
   World.rivals = World.rivals.filter(x => x !== r);
   R.beaten++;
   addMoney(BOSS_BEAT_REWARD);
+  playSound('success');
   toast(`🏆 You ran ${r.name} out of business! +${fmtMoney(BOSS_BEAT_REWARD)}. ` + bossSays('beaten', CUISINES[b.cuisine].name.toLowerCase()), 'good');
 }
 

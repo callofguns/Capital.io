@@ -13,6 +13,11 @@ const SETTINGS_DEFAULT = {
   crowd: 'normal',   // how many people walk around: calm / normal / busy
   autosave: 15,      // seconds between autosaves
   joystick: true,    // on-screen joystick (phones & tablets)
+  sound: true,       // sound effects
+  sfxVol: 0.7,       // how loud the sound effects are
+  music: true,       // background music
+  musicVol: 0.7,     // how loud the music is
+  citySounds: true,  // quiet city noise in the background
 };
 const CROWD_LEVELS = { calm: 0.6, normal: 1, busy: 1.4 };
 
@@ -33,6 +38,7 @@ function applySettings() {
   document.body.classList.toggle('no-minimap', !Settings.minimap);
   document.body.classList.toggle('no-joystick', !Settings.joystick);
   if (!Settings.tooltips) $('tooltip').classList.add('hidden');
+  if (typeof updateMusic === 'function') { updateMusic(); updateLoops(); }
 }
 
 // ---------- Backups: download / load your save as a file ----------

@@ -101,6 +101,7 @@ function checkGoals() {
   if (g && g.check(S)) {
     addMoney(g.reward, false);
     toast(`🎯 Goal done! +${fmtMoney(g.reward)}`, 'goal');
+    playSound('success');
     S.goalIndex++;
     const next = GOALS[S.goalIndex];
     if (next && next.chapter !== g.chapter) toast(`📖 You finished "${STORY[g.chapter].title.split('·')[1].trim()}"!`, 'goal');
@@ -527,6 +528,15 @@ function settingsHtml() {
   const choice = (k, label, desc, opts) => `<div class="row setting"><div class="grow"><b>${label}</b><div class="muted small">${desc}</div></div>
     <div class="seg">${opts.map(([v, l]) => `<button class="${String(Settings[k]) === String(v) ? 'sel' : ''}" data-act="setting" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div></div>`;
   return `
+    <div class="card"><b>🔊 Sound</b>
+      ${toggle('sound', 'Sound effects', 'Sizzling, cash registers, clicks and more')}
+      ${Settings.sound ? choice('sfxVol', 'Effects volume', 'How loud the sound effects are', VOLUMES) : ''}
+      ${Settings.sound ? toggle('citySounds', 'City sounds', 'Quiet city noise in the background') : ''}
+      ${toggle('music', 'Music', `Now playing: ${MUSIC[Snd.track].name}`)}
+      ${Settings.music ? choice('musicVol', 'Music volume', 'How loud the music is', VOLUMES) : ''}
+      ${Settings.music ? `<div class="btn-row">${btn('⏭️ Next song', 'next-song', {}, 'ghost')}</div>` : ''}
+      <p class="muted small">All sounds and music are free to use (CC0) from OpenGameArt.org and Kenney.nl. The full list is in <b>audio/CREDITS.md</b>.</p>
+    </div>
     <div class="card"><b>Display</b>
       ${toggle('minimap', 'Minimap', 'The little map in the corner')}
       ${toggle('night', 'Night lighting', 'Darker nights with glowing street lights')}
@@ -660,7 +670,7 @@ function startCooking(c) {
   c._playerCooking = true;
   Minigame.start(CUISINES[c.cuisine].game, c, score => {
     c._playerCooking = false;
-    if (serveCustomer(c, score, null)) S.stats.playerServed++;
+    if (serveCustomer(c, score, null)) { S.stats.playerServed++; playSound('cash'); if (score >= 0.9) playSound('done', { vol: 0.6 }); }
     else toast('Oops, they got tired of waiting and left.', 'bad');
   });
 }
@@ -699,7 +709,7 @@ const ACTIONS = {
   'cart-upgrade': d => {
     const c = getCart(d.id), lvl = c.upgrades[d.up];
     if (lvl >= UPGRADE_MAX) return;
-    if (spend(upgradeCost(d.up, lvl))) { c.upgrades[d.up]++; toast(`${UPGRADES[d.up].icon} ${UPGRADES[d.up].name} is now level ${lvl + 1}!`, 'good'); }
+    if (spend(upgradeCost(d.up, lvl))) { c.upgrades[d.up]++; playSound('done'); toast(`${UPGRADES[d.up].icon} ${UPGRADES[d.up].name} is now level ${lvl + 1}!`, 'good'); }
   },
   'cart-restock': d => restockCart(getCart(d.id)),
   'cart-cook': d => startCooking(getCart(d.id)),
@@ -804,6 +814,7 @@ const ACTIONS = {
     saveSettings();
     if (d.k === 'autosave') Game.timers.save = Math.min(Game.timers.save, v);
   },
+  'next-song': () => nextSong(),
   'reset-settings': () => { Settings = { ...SETTINGS_DEFAULT }; saveSettings(); toast('Settings are back to normal', 'info'); },
   'export-save': () => exportSave(),
   'import-save': () => $('import-file').click(),

@@ -234,6 +234,7 @@ function update(dt) {
   if ((tm.sec -= dt) <= 0) {
     tm.sec = 1;
     eventsTick();
+    updateLoops();
     rivalsTick();
     let rent = 0;
     for (const id in S.buildings) if (!shopAt(id)) rent += World.buildings[id].rentPerMin / 60;
@@ -270,6 +271,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupBigMap();
   setupPriceInputs();
   setupExchange();
+  setupSound();
   applySettings();
   $('version-tag').textContent = GAME_VERSION;
   $('import-file').addEventListener('change', e => { if (e.target.files[0]) importSave(e.target.files[0]); e.target.value = ''; });

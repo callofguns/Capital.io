@@ -121,6 +121,7 @@ function criticResult(c, quality) {
   const name = `${CUISINES[c.cuisine].name} cart`;
   if (quality != null && quality >= 0.7) {
     c.rating = Math.min(5, c.rating + 0.8);
+    playSound('success');
     toast(`📝⭐ The critic LOVED your ${name}! Reviews went way up.`, 'good');
   } else if (quality != null && quality >= 0.45) {
     c.rating = Math.min(5, c.rating + 0.2);
@@ -173,6 +174,7 @@ function orderProgress(kind, item, n) {
       o.status = 'done';
       addMoney(o.reward);
       S.ordersDone++;
+      playSound('success');
       toast(`📋✅ ${o.who}'s order is done! Bonus: +${fmtMoney(o.reward)}`, 'good');
     }
     break; // one sale counts toward one order

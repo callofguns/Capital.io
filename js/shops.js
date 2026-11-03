@@ -248,6 +248,7 @@ function checkout(s, n, cashier) {
   s.dirt = Math.min(100, s.dirt + 1.2 * (1 - shopUp(s, 'hygiene') * 0.07));
   if (w) { addMoney(-w.wage); w.earned += w.wage; giveXp(w, 1); }
   const d = shopBuilding(s).door;
+  playSaleNear(d.x, d.y);
   floatText(d.x * TILE + 16, d.y * TILE - 8, '+' + fmtMoney(total), '#7CFC9A');
   shopLeave(s, n, '🛍️', false, true);
 }
@@ -613,6 +614,7 @@ Object.assign(ACTIONS, {
     if (lvl >= UPGRADE_MAX) return;
     if (spend(shopUpgradeCost(d.up, lvl))) {
       s.upgrades = s.upgrades || {}; s.upgrades[d.up] = lvl + 1;
+      playSound('done');
       toast(`${SHOP_UPGRADES[d.up].icon} ${SHOP_UPGRADES[d.up].name} is now level ${lvl + 1}!`, 'good');
     }
   },

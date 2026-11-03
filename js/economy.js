@@ -34,6 +34,7 @@ function addMoney(amount, op = true) {
 function spend(amount, op = false) {
   if (S.money < amount - 1e-9) { toast(`You need ${fmtMoney(amount)} for that`, 'bad'); return false; }
   addMoney(-amount, op);
+  if (amount >= 20) playSound('cash', { vol: 0.8, gap: 0.2 });
   return true;
 }
 
@@ -227,6 +228,7 @@ function serveCustomer(c, quality, worker) {
   c.dirt = Math.min(100, c.dirt + 1.6 * (1 - 0.08 * c.upgrades.hygiene));
   c.rating = c.rating * 0.92 + (1 + quality * 4) * 0.08;
   if (worker) {
+    playSaleNear(c.x, c.y);
     addMoney(-worker.wage);
     worker.earned += worker.wage;
     giveXp(worker, 1);

@@ -5,6 +5,7 @@
 
 const Minigame = {
   active: null,
+  kind: null, // which game is running (the sizzle sound plays for cooking, not scrubbing)
 
   start(type, cart, done) {
     if (this.active) return;
@@ -12,22 +13,26 @@ const Minigame = {
     UI.modalOpen = true;
     document.getElementById('modal').classList.remove('hidden');
     box.className = 'mg';
+    this.kind = type;
     const finish = (score, label) => {
       if (!this.active) return;
       this.active.cleanup();
       this.active = null;
+      updateLoops(); // stop the sizzle
       box.insertAdjacentHTML('beforeend', `<div class="mg-result ${score >= 0.85 ? 'great' : score >= 0.45 ? 'ok' : 'bad'}">${label}</div>`);
       setTimeout(() => { closeModal(); done(score); }, 750);
     };
     const labelFor = s => s >= 0.9 ? 'PERFECT! ⭐' : s >= 0.7 ? 'Nice!' : s >= 0.45 ? 'Not bad' : s >= 0.25 ? 'Eh...' : 'Burnt! 🔥';
     const games = { timing: mgTiming, sequence: mgSequence, hold: mgHold, scrub: mgScrub };
     this.active = games[type](box, cart, finish, labelFor);
+    updateLoops(); // start the sizzle
   },
 
   cancel() {
     if (!this.active) return;
     this.active.cleanup();
     this.active = null;
+    updateLoops();
     closeModal();
   },
 };
@@ -180,6 +185,7 @@ function mgScrub(box, cart, finish) {
     if (s._last && now - s._last < 90) return;
     s._last = now;
     s.dataset.hp--;
+    playSound('scrub', { vol: 0.8, rate: rand(0.9, 1.15), gap: 0.12 });
     s.style.opacity = s.dataset.hp / 3;
     if (+s.dataset.hp <= 0) {
       s.remove(); left--;
