@@ -2,14 +2,19 @@
 
 **Version:** v1.3-beta
 
+### 🎮 [Play it in your browser](https://callofguns.github.io/Capital.io/)
+
+https://callofguns.github.io/Capital.io/
+
 A 2D city business game you play in your browser, inspired by **Capital Rift** and **Big Ambitions**.
 You start out with one food cart in the town square. From there you cook for customers, hire workers,
 open shops, buy land, farm, raise animals, buy buildings and trade on the market until you basically own the city.
 
 ## How to play it
 
-**The easy way:** double-click `index.html`. It opens in your browser and you're good to go.
-There's nothing to install.
+**The easy way:** open https://callofguns.github.io/Capital.io/ on your computer or phone. There's nothing to install.
+
+**Or play it offline:** download the code and double-click `index.html`. It opens in your browser and you're good to go.
 
 **Or run a little local server** (handy later if you add features that need one):
 
@@ -44,7 +49,7 @@ Your game saves on its own, right in your browser. In **❓ Help → ⚙️ Sett
 | Tap the minimap | Open the big city map |
 | Swipe a menu down, or tap the map | Close it |
 
-It works with your phone upright or sideways. Once the game is online (on GitHub Pages, for example),
+It works with your phone upright or sideways. Open https://callofguns.github.io/Capital.io/ on your phone and
 use your browser's **Add to Home Screen** button to install it like an app. It'll open full screen.
 
 ## The big city map
