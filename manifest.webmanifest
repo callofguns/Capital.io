@@ -1,10 +1,12 @@
 {
+  "id": "./",
   "name": "Capital.io",
   "short_name": "Capital.io",
   "description": "Start with one food cart. End up with an empire.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "orientation": "any",
   "background_color": "#16181f",
   "theme_color": "#16181f",

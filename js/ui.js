@@ -31,6 +31,7 @@ function showModal(html, cls = '') {
 function closeModal() {
   $('modal').classList.add('hidden');
   $('modal-box').innerHTML = '';
+  $('modal').classList.remove('over-title');
   UI.modalOpen = false;
   UI.editShop = null;
   for (const c of S ? S.carts : []) c._playerCooking = false;
@@ -550,6 +551,8 @@ function settingsHtml() {
       ${choice('crowd', 'Crowds', 'Fewer people can help if the game feels slow', [['calm', 'Calm'], ['normal', 'Normal'], ['busy', 'Busy']])}
       ${choice('autosave', 'Autosave', 'How often the game saves on its own', [[10, '10s'], [15, '15s'], [30, '30s'], [60, '1 min']])}
     </div>
+    ${canOfferInstall() ? `<div class="card"><b>💻 Install the game</b><p class="muted small">Put Capital.io on your desktop or home screen like a normal app. It opens in its own window and works without internet.</p>
+      <div class="btn-row">${btn('💻 Install', 'install', {})}</div></div>` : ''}
     <div class="card"><b>Your save</b><p class="muted small">Your game is saved in this browser. Download a backup to keep it safe, or to move it to another device.</p>
       <div class="btn-row">${btn('💾 Save now', 'save')}${btn('📥 Download backup', 'export-save', {}, 'ghost')}${btn('📤 Load backup', 'import-save', {}, 'ghost')}</div>
       <div class="btn-row">${btn('↩️ Reset settings', 'reset-settings', {}, 'ghost')}${btn('🗑️ Start over', 'reset', {}, 'ghost danger')}</div></div>
@@ -815,6 +818,7 @@ const ACTIONS = {
     if (d.k === 'autosave') Game.timers.save = Math.min(Game.timers.save, v);
   },
   'next-song': () => nextSong(),
+  install: () => installGame(),
   'reset-settings': () => { Settings = { ...SETTINGS_DEFAULT }; saveSettings(); toast('Settings are back to normal', 'info'); },
   'export-save': () => exportSave(),
   'import-save': () => $('import-file').click(),

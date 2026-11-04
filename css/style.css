@@ -404,6 +404,10 @@ body.no-minimap #minimap { display: none; }
 #title-cuisines { margin-bottom: 18px; }
 #continue-btn { width: 100%; margin-bottom: 10px; background: #52d69a; box-shadow: 0 3px 0 #2f9a67; }
 #start-btn { width: 100%; }
+#install-btn { width: 100%; margin-top: 10px; }
+#modal.over-title { z-index: 60; }
+.install-steps { text-align: left; line-height: 1.5; padding-left: 22px; }
+.install-steps li { margin-bottom: 8px; }
 
 /* ---------- Touch screens (phones & tablets) ---------- */
 #joystick { display: none; }

@@ -26,6 +26,17 @@ python3 -m http.server 8000
 Your game saves on its own, right in your browser. In **❓ Help → ⚙️ Settings** you can turn things on and off
 (the minimap, night lighting, crowds, autosave and more) and download a backup of your save.
 
+## Install it like an app (computer or phone)
+
+Open https://callofguns.github.io/Capital.io/ and click **💻 Install the game** on the start screen
+(it's also in **❓ Help → ⚙️ Settings**). The game then gets its own icon on your desktop, Start menu,
+Dock or home screen, opens in its own window, and works without internet.
+
+- **Chrome or Edge (Windows, Mac, Linux, Chromebook):** the button opens the install window right away. You can also click the install icon at the right end of the address bar.
+- **Safari on a Mac:** File → Add to Dock.
+- **iPhone / iPad:** Share → Add to Home Screen.
+- **Firefox on a computer** can't install websites, so use Chrome or Edge for this.
+
 ## Controls
 
 | Key / action | What it does |
@@ -112,6 +123,8 @@ Everything is plain JavaScript (no frameworks), split into files by what they do
 | `js/exchange.js` | The 📈 Market window: price charts, who's buying and selling, and the Buy / Sell box |
 | `js/touch.js` | Phone controls: joystick, pinch to zoom, swipe to close |
 | `js/sound.js` | Sound effects and music (the files are in the `audio` folder) |
+| `js/install.js` | The "Install the game" button (add it to your desktop or home screen) |
+| `sw.js` | Lets the game install as an app and work offline |
 | `js/settings.js` | The ⚙️ Settings and save backups |
 | `js/main.js` | The start screen, keyboard and mouse controls, and the main game loop |
 

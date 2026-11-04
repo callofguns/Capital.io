@@ -21,7 +21,7 @@ const audioUrl = f => `audio/${f}.mp3`;
 
 const Snd = {
   ready: false, web: false, ctx: null, master: null, bufs: {}, last: {},
-  music: null, musicGain: null, track: Math.floor(Math.random() * MUSIC.length),
+  music: null, musicGain: null, musicFails: 0, track: Math.floor(Math.random() * MUSIC.length),
   loops: {}, // name -> { el, gain }
 };
 
@@ -112,6 +112,9 @@ function updateMusic() {
   if (!Snd.music) {
     Snd.music = makeAudio(audioUrl(MUSIC[Snd.track].file), false);
     Snd.music.el.addEventListener('ended', () => nextSong());
+    // a song that can't load (for example offline) is skipped, but we stop after trying them all
+    Snd.music.el.addEventListener('error', () => { if (++Snd.musicFails < MUSIC.length) nextSong(); });
+    Snd.music.el.addEventListener('playing', () => { Snd.musicFails = 0; });
   }
   setVol(Snd.music, 0.6 * Settings.musicVol);
   if (Snd.music.el.paused) Snd.music.el.play().catch(() => {});
