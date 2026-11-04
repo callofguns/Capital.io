@@ -1,6 +1,6 @@
 # Capital.io 🍔🏙️
 
-**Version:** v1.2-beta
+**Version:** v1.3-beta
 
 A 2D city business game you play in your browser, inspired by **Capital Rift** and **Big Ambitions**.
 You start out with one food cart in the town square. From there you cook for customers, hire workers,
